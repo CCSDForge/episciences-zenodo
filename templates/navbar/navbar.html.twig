@@ -1,0 +1,11 @@
+<!-- As a heading -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <img id="logo-epi" src="{{ asset('/img/EPI_signe-couleurs_fond-blanc.png') }}">
+        {#informations provided from controller with user information#}
+        <div class="d-flex">
+            <p class="me-4 my-auto h5 text-white">Bienvenue {{ userInfo.firstname }} {{ userInfo.lastname }}</p>
+            <a class="btn btn-outline-danger btn-lg d-block" href="{{ path('logout') }}">logout</a>
+        </div>
+    </div>
+</nav>

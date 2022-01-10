@@ -1,0 +1,37 @@
+security:
+#    enable_authenticator_manager: true
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+#    password_hashers:
+#        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    providers:
+        userprovider:
+            id: App\Security\UserProvider
+#        users:
+#            entity:
+#                class: App\Entity\User
+    firewalls:
+        dev:
+            pattern: ^/_(profiler|wdt)/
+            security: false
+        main:
+            lazy: true
+            pattern: ^/
+            security: true
+            cas: true # Activation du CAS
+
+            # activate different ways to authenticate
+            # https://symfony.com/doc/current/security.html#the-firewall
+
+            # https://symfony.com/doc/current/security/impersonating_user.html
+            # switch_user: true
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+         - { path: ^/login, roles: [ROLE_USER,ROLE_ANO] }
+         - { path: ^/force, roles: [ROLE_USER,ROLE_ANO] }
+         - { path: ^/home, roles: [ROLE_ANO] }
+         - { path: ^/, roles: ROLE_USER }
+##         - { path: ^/deposit, roles: ROLE_USER }
+##         - { path: ^/profile, roles: ROLE_USER }

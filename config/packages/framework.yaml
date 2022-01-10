@@ -1,0 +1,40 @@
+# see https://symfony.com/doc/current/reference/configuration/framework.html
+framework:
+    secret: '%env(APP_SECRET)%'
+    #csrf_protection: true
+    http_method_override: false
+
+    # Enables session support. Note that the session will ONLY be started if you read or write from it.
+    # Remove or comment this section to explicitly disable session support.
+    session:
+        handler_id: null
+        cookie_secure: auto
+        cookie_samesite: lax
+        storage_factory_id: session.storage.factory.native
+
+    #esi: true
+    #fragments: true
+    php_errors:
+        log: true
+parameters:
+    cas_login_target: '%env(string:CAS_LOGIN_TARGET)%'
+    cas_logout_target: '%env(string:CAS_LOGOUT_TARGET)%'
+    cas_host: '%env(string:CAS_HOST)%'
+    cas_path: '%env(string:CAS_PATH)%'
+    cas_gateway: '%env(bool:CAS_GATEWAY)%'
+
+l3_cas:
+    host: '%env(string:CAS_HOST)%'
+    path: '%env(string:CAS_PATH)%'
+    port: '%env(int:CAS_PORT)%'
+    ca: '%env(bool:CAS_CA)%'
+    handleLogoutRequest: '%env(bool:CAS_HANDLE_LOGOUT_REQUEST)%'
+    casLogoutTarget: '%env(string:CAS_LOGOUT_TARGET)%'
+    force: '%env(bool:CAS_FORCE)%'
+    gateway: '%env(bool:CAS_GATEWAY)%'
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file

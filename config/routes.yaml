@@ -1,0 +1,26 @@
+home:
+    path: /home
+    controller: App\Controller\HomeController::index
+
+login:
+    path: /login
+    controller: App\Controller\LoginController::loginAction
+
+force:
+    path: /force
+    controller: App\Controller\LoginController::force
+
+logout:
+    path: /logout
+    controller: App\Controller\LoginController::logoutAction
+
+create_deposit:
+    path: /deposit
+    controller: App\Controller\DepositController::new
+
+edit_deposit:
+    path: /deposit/{id}/edit
+    controller: App\Controller\DepositController::edit
+delete_file:
+    path: /deposit/{id}/delete/file/{fileId}
+    controller: App\Controller\DepositController::deleteFile
