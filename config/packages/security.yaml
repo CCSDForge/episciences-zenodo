@@ -19,7 +19,7 @@ security:
             pattern: ^/
             security: true
             cas: true # Activation du CAS
-
+            access_denied_url: /login
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -32,6 +32,6 @@ security:
          - { path: ^/login, roles: [ROLE_USER,ROLE_ANO] }
          - { path: ^/force, roles: [ROLE_USER,ROLE_ANO] }
          - { path: ^/home, roles: [ROLE_ANO] }
-         - { path: ^/, roles: ROLE_USER }
-##         - { path: ^/deposit, roles: ROLE_USER }
-##         - { path: ^/profile, roles: ROLE_USER }
+         - { path: ^/$, roles: ROLE_ANO }
+         - { path: ^/deposit, roles: ROLE_USER }
+         - { path: ^/_error, roles: [ROLE_ANO,ROLE_USER] }

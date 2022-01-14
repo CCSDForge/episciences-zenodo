@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+{% block title %}Error{% endblock %}
+{% block body %}
+    {% include './navbar/navbar.html.twig' %}
+    <div class="d-flex flex-column min-vh-100 justify-content-center align-items-center">
+        <h1>Error {{ statusCode }}</h1>
+        <p>
+            {{ message }}
+        </p>
+    </div>
+{% endblock %}

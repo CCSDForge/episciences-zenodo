@@ -17,4 +17,12 @@ class HomeController extends AbstractController
             'controller_name' => 'HomeController',
         ]);
     }
+    /**
+     * @Route("/", name="default")
+     */
+    public function default(): Response
+    {
+        return $this->index();
+    }
+
 }

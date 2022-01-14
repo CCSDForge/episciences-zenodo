@@ -3,12 +3,11 @@
 namespace App\Service;
 
 use GuzzleHttp\Client;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ZenodoClient
 {
-
     public function createEmptyDeposit(string $token) {
-
         $client = new Client();
         return $client->request('POST','https://sandbox.zenodo.org/api/deposit/depositions',[
             'headers' => [
@@ -19,7 +18,6 @@ class ZenodoClient
             ],
             'json' => new \stdClass(),
         ]);
-
     }
 
     public function postFileInDeposit($file,$deposit,$token,$pathLocalFile) {
@@ -39,19 +37,22 @@ class ZenodoClient
     }
 
     public function postMetadataInDeposit($deposit, $idDeposit, $token) {
-
         $pushMeta =  new Client();
         $metaData = $this->formatMetadatas($deposit);
-        $pushMeta = $pushMeta->request('PUT',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit,[
-            'query'=> [
-                'access_token'=>$token
-            ],
-            'json' => [
-                'metadata'=> $metaData,
-            ]
-        ]);
-    }
+        try {
+            return $pushMeta->request('PUT',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit,[
+                'query'=> [
+                    'access_token'=>$token
+                ],
+                'json' => [
+                    'metadata'=> $metaData,
+                ]
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $e->getResponse();
+        }
 
+    }
 
     public function formatMetadatas($deposit): array {
         $metaData = array(
@@ -81,28 +82,49 @@ class ZenodoClient
         return $metaData;
     }
 
-    public function publishDeposit($idDeposit, $token){
+    public function publishDeposit($idDeposit, $token) {
         $publish =  new Client();
-        $publish = $publish->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/publish",[
-            'query'=> [
-                'access_token'=>$token
-            ],
-        ]);
+        try {
+            $publish = $publish->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/publish",[
+                'query'=> [
+                    'access_token'=>$token
+                ],
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->hasResponse()) {
+                $exception = (string) $e->getResponse()->getBody();
+                $exception = json_decode($exception,true);
+                return [
+                    'status' => $e->getCode(),
+                    'message' => $exception['errors'][0]["message"]
+                ];
+            } else {
+                return [
+                    'status' => $e->getCode(),
+                    'message' => 'an error occurred'
+                ];
+            }
+        }
+        return [
+            'status' => $publish->getStatusCode(),
+            'message' => $publish->getReasonPhrase()
+        ];
     }
 
-    public function getDepositById($idDeposit,$token){
-
+    public function getDepositById($idDeposit,$token) {
         $client =  new Client();
-        return $client->request('GET',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit,[
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ],
-            'query'=>[
-                'access_token'=> $token
-            ],
-
-        ]);
-
+        try {
+            return $client->request('GET',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit,[
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+                'query'=>[
+                    'access_token'=> $token
+                ],
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $e->getResponse();
+        }
     }
 
     public function formatFilesInfoFromDeposit($depositInfoFiles): array {
@@ -125,7 +147,6 @@ class ZenodoClient
     }
 
     public function formatMetadatasFromDeposit($depositInfo): array {
-
         $reformatDepositInfo = array(
             'title' => $depositInfo['title'],
             'description' => $depositInfo['metadata']['description'],
@@ -154,11 +175,9 @@ class ZenodoClient
         }
 
         return $reformatDepositInfo;
-
     }
 
     public function deleteFilesFromDeposit($token,$idDeposit,$fileId):array {
-
         $client =  new Client();
         $response = $client->request('DELETE',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/files/".$fileId,[
             'headers' => [
@@ -176,17 +195,16 @@ class ZenodoClient
 
     }
 
-    public function newVersionDeposit($token,$idDeposit){
+    public function newVersionDeposit($token,$idDeposit) {
         $client =  new Client();
         $response = $client->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/newversion",[
             'headers' => [
                 'Content-Type' => 'application/json'
             ],
-            'query'=>[
+            'query'=> [
                 'access_token'=> $token
             ],
         ]);
-
         return [
             'status' => $response->getStatusCode(),
             'message' => $response->getReasonPhrase(),
@@ -194,4 +212,3 @@ class ZenodoClient
         ];
     }
 }
-
