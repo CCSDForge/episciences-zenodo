@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Service\UploadFile;
 use App\Service\ZenodoClient;
-//use League\OAuth2\Client\Grant\AuthorizationCode;
+use League\OAuth2\Client\Grant\AuthorizationCode;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,24 +18,23 @@ use App\Form\DepositFormType;
 use Symfony\Component\Security\Core\Security;
 use App\Repository\LogUserActionRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
-//use GuzzleHttp\TransferStats;
-//use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
-//use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-//use Symfony\Component\HttpFoundation\RequestStack;
+use GuzzleHttp\TransferStats;
+use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 
 class DepositController extends AbstractController
 {
 
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger /*,RequestStack $requestStack*/): Response
+    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack): Response
     {
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
         $form = $this->createForm(DepositFormType::class);
         $form->handleRequest($request);
-        $token = $this->getParameter('app.SBX_TOKEN');
-//        $oauthSession = $requestStack->getSession()->get('access_token',[]);
-//        $token = $oauthSession->getToken();
+        $oauthSession = $requestStack->getSession()->get('access_token',[]);
+        $token = $oauthSession->getToken();
         if ($form->isSubmitted() && $form->isValid()) {
             $deposit = $form->getData();
             $depositFile = $form->get('depositFile')->getData();
@@ -135,11 +134,10 @@ class DepositController extends AbstractController
         ]);
     }
 
-    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger/*, RequestStack $requestStack*/) : Response {
+    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack) : Response {
         $userInfo = $security->getToken()->getAttributes();
-//        $oauthSession = $requestStack->getSession()->get('access_token',[]);
-//        $token = $oauthSession->getToken();
-        $token = $this->getParameter('app.SBX_TOKEN');
+        $oauthSession = $requestStack->getSession()->get('access_token',[]);
+        $token = $oauthSession->getToken();
         $response = $zenodoClient->getDepositById($id,$token);
         if ($response->getStatusCode() === 200) {
             $depositInfo = json_decode($response->getBody()->getContents(),true);
@@ -274,11 +272,10 @@ class DepositController extends AbstractController
         }
     }
 
-    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session /*,RequestStack $requestStack*/) {
+    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack) {
         if ($security->getToken()->getAttributes()){
-//            $oauthSession = $requestStack->getSession()->get('access_token',[]);
-//            $token = $oauthSession->getToken();
-            $token = $this->getParameter('app.SBX_TOKEN');
+            $oauthSession = $requestStack->getSession()->get('access_token',[]);
+            $token = $oauthSession->getToken();
             $fileInfoSended = json_decode($request->getContent(), true);
             $deposit = $zenodoClient->getDepositById($id,$token);
             if ($deposit->getStatusCode() === 200) {
