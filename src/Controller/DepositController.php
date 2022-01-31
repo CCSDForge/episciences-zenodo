@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Service\UploadFile;
 use App\Service\ZenodoClient;
+//use League\OAuth2\Client\Grant\AuthorizationCode;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,23 +13,29 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpClient\HttpClient;
 use GuzzleHttp\Client as guzzleClient;
 use App\Form\DepositFormType;
 use Symfony\Component\Security\Core\Security;
 use App\Repository\LogUserActionRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
+//use GuzzleHttp\TransferStats;
+//use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
+//use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+//use Symfony\Component\HttpFoundation\RequestStack;
 
 
 class DepositController extends AbstractController
 {
 
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger): Response
+    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger /*,RequestStack $requestStack*/): Response
     {
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
         $form = $this->createForm(DepositFormType::class);
         $form->handleRequest($request);
+        $token = $this->getParameter('app.SBX_TOKEN');
+//        $oauthSession = $requestStack->getSession()->get('access_token',[]);
+//        $token = $oauthSession->getToken();
         if ($form->isSubmitted() && $form->isValid()) {
             $deposit = $form->getData();
             $depositFile = $form->get('depositFile')->getData();
@@ -39,35 +46,70 @@ class DepositController extends AbstractController
                 if ($depositFile) {
                     $uploadFile->uploadFileLocally($this->getParameter('deposit_upload_directory'), $depositFile);
                 }
-                $emptyDeposit = $zenodoClient->createEmptyDeposit($this->getParameter('app.SBX_TOKEN'));
-                $depositFile = $form->get('depositFile')->getData();
-                $tmpResponse = $emptyDeposit->getBody()->getContents();
-                // Recuperation du bucket pour l'ajout d'un fichier
-                $idDeposit = json_decode($tmpResponse,true)['id'];
-                if(!is_null($depositFile)) {
-                    $zenodoClient->postFileInDeposit($depositFile,$tmpResponse,$this->getParameter('app.SBX_TOKEN'),$this->getParameter('deposit_upload_directory'));
-                }
-                $postMetadatas = $zenodoClient->postMetadataInDeposit($deposit,$idDeposit,$this->getParameter('app.SBX_TOKEN'));
-                if ($postMetadatas->getStatusCode() === 200) {
-                    $action = 'save';
-                    if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
-                        $zenodoClient->publishDeposit($idDeposit,$this->getParameter('app.SBX_TOKEN'));
-                        $action = 'publish';
+                $emptyDeposit = $zenodoClient->createEmptyDeposit($token);
+                if ($emptyDeposit->getStatusCode() === 201){
+                    $depositFile = $form->get('depositFile')->getData();
+                    $tmpResponse = $emptyDeposit->getBody()->getContents();
+                    // Recuperation du bucket pour l'ajout d'un fichier
+                    $idDeposit = json_decode($tmpResponse,true)['id'];
+                    if(!is_null($depositFile)) {
+                        $zenodoClient->postFileInDeposit($depositFile,$tmpResponse,$token,$this->getParameter('deposit_upload_directory'));
                     }
-                    //log user action
-                    $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$this->getParameter('app.SBX_TOKEN')),true);
-                    $logInfo = array(
-                        'username' => $userInfo['username'],
-                        'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
-                        'doi_deposit_version' => $getDepositInfo['id'],
-                        'date'=> new \DateTime(),
-                        'action' => $action
-                    );
-                    //addlog return true or exception
-                    $flashMessage = ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
-                    $logRepo->addLog($logInfo) ?  $flashMessage :  $this->addFlash('error', 'Something wrong happened');
-                }else{
-                    $error = $postMetadatas->getBody()->getContents();
+                    $postMetadatas = $zenodoClient->postMetadataInDeposit($deposit,$idDeposit,$token);
+                    if ($postMetadatas->getStatusCode() === 200) {
+                        $action = 'save';
+                        if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
+                            $publishDeposit = $zenodoClient->publishDeposit($idDeposit,$token);
+                            if ($publishDeposit->getStatusCode() === 202) {
+                                $action = 'publish';
+                            } else {
+                                $action = 'error';
+                                $error = $publishDeposit->getBody()->getContents();
+                                $logger->debug($error, [
+                                    // include extra "context" info in your logs
+                                    'context' => 'APICall',
+                                ]);
+                                //api can return two type of array
+                                if (array_key_exists('errors', json_decode($error, true))) {
+                                    foreach (json_decode($error, true)['errors'] as $value) {
+                                        $this->addFlash('error', $value["message"]);
+                                    }
+                                } else {
+                                    $this->addFlash('error', json_decode($error, true)['message']);
+                                }
+                            }
+                        }
+                        //log user action
+                        $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
+                        $logInfo = array(
+                            'username' => $userInfo['username'],
+                            'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
+                            'doi_deposit_version' => $getDepositInfo['id'],
+                            'date'=> new \DateTime(),
+                            'action' => $action
+                        );
+                        $logRepo->addLog($logInfo);
+                        //addlog return true or exception
+                        if ($action !== 'error') {
+                            ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
+                        }
+                    } else {
+                        $error = $postMetadatas->getBody()->getContents();
+                        $logger->debug($error, [
+                            // include extra "context" info in your logs
+                            'context' => 'APICall',
+                        ]);
+                        //api can return two type of array
+                        if (array_key_exists('errors', json_decode($error, true))) {
+                            foreach (json_decode($error, true)['errors'] as $value) {
+                                $this->addFlash('error', $value["message"]);
+                            }
+                        } else {
+                            $this->addFlash('error', json_decode($error, true)['message']);
+                        }
+                    }
+                } else {
+                    $error = $emptyDeposit->getBody()->getContents();
                     $logger->debug($error, [
                         // include extra "context" info in your logs
                         'context' => 'APICall',
@@ -93,11 +135,13 @@ class DepositController extends AbstractController
         ]);
     }
 
-    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, UploadFile $uploadFile, LoggerInterface $logger) : Response {
+    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger/*, RequestStack $requestStack*/) : Response {
         $userInfo = $security->getToken()->getAttributes();
+//        $oauthSession = $requestStack->getSession()->get('access_token',[]);
+//        $token = $oauthSession->getToken();
         $token = $this->getParameter('app.SBX_TOKEN');
         $response = $zenodoClient->getDepositById($id,$token);
-        if ($response->getStatusCode() === 200){
+        if ($response->getStatusCode() === 200) {
             $depositInfo = json_decode($response->getBody()->getContents(),true);
             $originalId = json_decode($response->getBody(), true)['record_id'];
             $fileInfo = $zenodoClient->formatFilesInfoFromDeposit($depositInfo['files']);
@@ -128,26 +172,55 @@ class DepositController extends AbstractController
                         $requestFile =  new guzzleClient();
                         $requestFile = $requestFile->request('PUT',"$bucket/$filename",[
                             'query'=> [
-                                'access_token'=>$this->getParameter('app.SBX_TOKEN')
+                                'access_token'=>$token
                             ],
                             'body' =>  $handle,
                         ]);
                     }
                 }
                 // ajout des données après l'ajout du fichier (si il y en a un)
-                $zenodoClient->postMetadataInDeposit($deposit,$originalId,$token);
+                $postMetadata = $zenodoClient->postMetadataInDeposit($deposit,$originalId,$token);
                 $idDeposit = json_decode($response->getBody(),true)['id'];
-                // Define the action for the log
-                $action = 'save';
-                if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
-                    $publishDeposit = $zenodoClient->publishDeposit($idDeposit,$this->getParameter('app.SBX_TOKEN'));
-                    if ($publishDeposit['status'] !== 202) {
-                        $this->addFlash('error', $publishDeposit['message']);
-                        return $this->redirect($request->getUri());
+                if ($postMetadata->getStatusCode() === 200) {
+                    // Define the action for the log
+                    $action = 'save';
+                    if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
+                        $publishDeposit = $zenodoClient->publishDeposit($idDeposit,$token);
+                        if ($publishDeposit->getStatusCode() === 201) {
+                            $action = 'publish';
+                        } else {
+                            $error = $publishDeposit->getBody()->getContents();
+                            $logger->debug($error, [
+                                // include extra "context" info in your logs
+                                'context' => 'APICall',
+                            ]);
+                            //api can return two type of array
+                            if (array_key_exists('errors', json_decode($error, true))) {
+                                foreach (json_decode($error, true)['errors'] as $value) {
+                                    $this->addFlash('error', $value["message"]);
+                                }
+                            } else {
+                                $this->addFlash('error', json_decode($error, true)['message']);
+                            }
+                        }
                     }
-                    $action = 'publish';
+                } else {
+                    $error = $postMetadata->getBody()->getContents();
+                    $logger->debug($error, [
+                        // include extra "context" info in your logs
+                        'context' => 'APICall',
+                    ]);
+                    //api can return two type of array
+                    if (array_key_exists('errors', json_decode($error, true))) {
+                        foreach (json_decode($error, true)['errors'] as $value) {
+                            $this->addFlash('error', $value["message"]);
+                        }
+                    } else {
+                        $this->addFlash('error', json_decode($error, true)['message']);
+                    }
+                    $action = "error";
                 }
-                $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$this->getParameter('app.SBX_TOKEN')),true);
+                $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
                 $logInfo = array(
                     'username' => $userInfo['username'],
                     'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
@@ -156,8 +229,11 @@ class DepositController extends AbstractController
                     'action' => $action,
                 );
                 $statusDeposit = $getDepositInfo['submitted'];
+                $logRepo->addLog($logInfo);
+                if ($action !== 'error') {
+                    ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
+                }
 
-                $flashMessage = ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
                 return $this->redirect($request->getUri());
             } else {
                 return $this->renderForm('deposit/edit.html.twig', [
@@ -198,8 +274,10 @@ class DepositController extends AbstractController
         }
     }
 
-    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session) {
+    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session /*,RequestStack $requestStack*/) {
         if ($security->getToken()->getAttributes()){
+//            $oauthSession = $requestStack->getSession()->get('access_token',[]);
+//            $token = $oauthSession->getToken();
             $token = $this->getParameter('app.SBX_TOKEN');
             $fileInfoSended = json_decode($request->getContent(), true);
             $deposit = $zenodoClient->getDepositById($id,$token);
@@ -215,9 +293,9 @@ class DepositController extends AbstractController
                         break;
                     }
                 }
-                if ($checkValidFile === true){
+                if ($checkValidFile === true) {
                     $deleteFile = $zenodoClient->deleteFilesFromDeposit($token,$id,$fileId);
-                }else{
+                } else {
                     return new JsonResponse([
                         'status' => 404,
                         'message' => 'File not found'

@@ -9,15 +9,19 @@ class ZenodoClient
 {
     public function createEmptyDeposit(string $token) {
         $client = new Client();
-        return $client->request('POST','https://sandbox.zenodo.org/api/deposit/depositions',[
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ],
-            'query' =>[
-                'access_token' => $token
-            ],
-            'json' => new \stdClass(),
-        ]);
+        try {
+            return $client->request('POST','https://sandbox.zenodo.org/api/deposit/depositions',[
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+                'query' =>[
+                    'access_token' => $token
+                ],
+                'json' => new \stdClass(),
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $e->getResponse();
+        }
     }
 
     public function postFileInDeposit($file,$deposit,$token,$pathLocalFile) {
@@ -85,30 +89,14 @@ class ZenodoClient
     public function publishDeposit($idDeposit, $token) {
         $publish =  new Client();
         try {
-            $publish = $publish->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/publish",[
+            return $publish->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/publish",[
                 'query'=> [
                     'access_token'=>$token
                 ],
             ]);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            if ($e->hasResponse()) {
-                $exception = (string) $e->getResponse()->getBody();
-                $exception = json_decode($exception,true);
-                return [
-                    'status' => $e->getCode(),
-                    'message' => $exception['errors'][0]["message"]
-                ];
-            } else {
-                return [
-                    'status' => $e->getCode(),
-                    'message' => 'an error occurred'
-                ];
-            }
+            return $e->getResponse();
         }
-        return [
-            'status' => $publish->getStatusCode(),
-            'message' => $publish->getReasonPhrase()
-        ];
     }
 
     public function getDepositById($idDeposit,$token) {
