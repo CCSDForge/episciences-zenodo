@@ -24,3 +24,4 @@ yarn-error.log
 !/bin/
 
 /.idea
+!/config/packages/knpu_oauth2_client.yaml
