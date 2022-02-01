@@ -1,11 +1,24 @@
 <!-- As a heading -->
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <img id="logo-epi" src="{{ asset('/img/EPI_signe-couleurs_fond-blanc.png') }}">
-        {#informations provided from controller with user information#}
-        <div class="d-flex">
-            <p class="me-4 my-auto h5 text-white">Bienvenue {{ userInfo.firstname }} {{ userInfo.lastname }}</p>
-            <a class="btn btn-outline-danger btn-lg d-block" href="{{ path('logout') }}">logout</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ app.request.locale|locale_name(app.request.locale)|u.title }}
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge(app.request.query.all|merge({_locale: 'en'}))) }}">English</a></li>
+                        <li><a class="dropdown-item" href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge(app.request.query.all|merge({_locale: 'fr'}))) }}">Français</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="d-flex">
+                <p class="me-4 my-auto h5 text-white">{{ 'Welcome'|trans }} {{ userInfo.firstname }} {{ userInfo.lastname }}</p>
+                <a class="btn btn-outline-danger btn-lg d-block" href="{{ path('logout') }}">{{ 'Logout'|trans }}</a>
+            </div>
         </div>
     </div>
 </nav>

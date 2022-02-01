@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit !{% endblock %}
+{% block title %}{{ 'editDeposit'|trans }}{% endblock %}
 {% block body %}
     {% include './navbar/navbar.html.twig' %}
     <style>
@@ -26,24 +26,24 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">Delete the Ressource</h5>
+                        <h5 class="modal-title" id="exampleModalLabel">{{ 'deleteResource'|trans }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        Do you really want delete the Ressource
+                        {{ 'warningConfirm'|trans }} {{ 'deleteResource'|trans }}
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" id="valid-modal" class="btn btn-danger">Delete</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'Close'|trans }}</button>
+                        <button type="button" id="valid-modal" class="btn btn-danger">{{ 'Delete'|trans }}</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h1>Edit Deposit</h1>
+        <h1>{{ 'Edit'|trans }} {{ 'Deposit'|trans }}</h1>
 
         {% if filesInfo is not empty %}
-            <p>Files in the Deposit</p>
+            <p>{{ 'Files in the Deposit'|trans }}</p>
             <div>
                 {% for key,file in filesInfo %}
                     <div class="row mb-2">
@@ -52,7 +52,8 @@
                         </p>
                         {% if DepositPublished is same as(false) %}
                             <div id="info_file_{{ key }}" data-link="{{ file.link }}" data-filename="{{ file.filename }}" data-checksum="{{ file.checksum }}" data-id="{{ file.id }}" hidden></div>
-                            <button id="info_file_{{ key }}" type="button" class="btn btn-outline-danger col-6" data-bs-toggle="modal" data-bs-target="#exampleModal">Delete</button>
+                            <button id="info_file_{{ key }}" type="button" class="btn btn-outline-danger col-6" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                {{ 'Delete'|trans }}</button>
                         {% endif %}
                         </div>
                 {% endfor %}
@@ -64,20 +65,19 @@
         {{ form_row(form._token) }}
         {% if DepositPublished is same as(false) %}
             {{ form_row(form.depositFile) }}
-            <button type="button" id="clear-upload" class="btn btn-outline-warning w-100 mb-3">Clear upload files</button>
+            <button type="button" id="clear-upload" class="btn btn-outline-warning w-100 mb-3">{{ 'Clear'|trans }} {{ 'Upload files'|trans }}</button>
             {% else %}
                 <div class="card border-info mb-3">
-                    <div class="card-header text-center">Upload</div>
+                    <div class="card-header text-center">{{ 'Upload'|trans }}</div>
                     <div class="card-body">
-                        <p class="card-text text-center">if you want to put a files from a published deposit you need to create new version of the deposit</p>
+                        <p class="card-text text-center">{{ 'publishNewVersError'|trans }}</p>
                     </div>
                 </div>
                 {{ form_row(form.new_version) }}
         {% endif %}
-        <h3>Upload type</h3>
         <div id="upload_type">{{ form_row(form.upload_type) }}</div>
         <div id="publication_type">{{ form_row(form.publication_type) }}</div>
-        <h3>basic information</h3>
+        <h3>{{ 'Basic information'|trans }}</h3>
         {{ form_row(form.date) }}
         {{ form_row(form.title) }}
         {{ form_row(form.description)|raw }}
@@ -94,7 +94,7 @@
         </div>
         <button type="button"
                 class="add-another-collection-widget btn btn-outline-info w-100 mb-3 mt-3"
-                data-list-selector="#creator-fields-list">Add another author</button>
+                data-list-selector="#creator-fields-list">{{ 'Add another author'|trans }}</button>
 
         {# change the label of the submit btn #}
         <div class="row">
