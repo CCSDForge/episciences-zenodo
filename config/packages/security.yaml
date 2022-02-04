@@ -19,7 +19,7 @@ security:
             pattern: ^/
             security: true
             cas: true # Activation du CAS
-            access_denied_url: /login
+            access_denied_url: /en/login
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
 
@@ -29,9 +29,10 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-         - { path: ^/login, roles: [ROLE_USER,ROLE_ANO] }
-         - { path: ^/force, roles: [ROLE_USER,ROLE_ANO] }
-         - { path: ^/home, roles: [ROLE_ANO] }
+         - { path: ^/(en|fr)/login, roles: [ROLE_USER,ROLE_ANO] }
+         - { path: ^/(en|fr)/force, roles: [ROLE_USER,ROLE_ANO] }
+         - { path: ^/(en|fr)/home, roles: [ROLE_ANO] }
+         - { path: ^/(en|fr)/$, roles: ROLE_ANO }
          - { path: ^/$, roles: ROLE_ANO }
-         - { path: ^/deposit, roles: ROLE_USER }
-         - { path: ^/_error, roles: [ROLE_ANO,ROLE_USER] }
+         - { path: ^/(en|fr)/deposit, roles: ROLE_USER }
+         - { path: ^/(en|fr)/_error, roles: [ROLE_ANO,ROLE_USER] }

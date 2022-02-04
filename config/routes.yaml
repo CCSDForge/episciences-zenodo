@@ -1,17 +1,17 @@
 home:
-    path: /{_locale<en|fr>}/home/
+    path: /{_locale<en|fr>}/home
     controller: App\Controller\HomeController::index
 
 login:
-    path: /login
+    path: /{_locale<en|fr>}/login
     controller: App\Controller\LoginController::loginAction
 
 force:
-    path: /force
+    path: /{_locale<en|fr>}/force
     controller: App\Controller\LoginController::force
 
 logout:
-    path: /logout
+    path: /{_locale<en|fr>}/logout
     controller: App\Controller\LoginController::logoutAction
 
 create_deposit:
