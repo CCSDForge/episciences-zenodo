@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Service\ZenodoClient;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -42,7 +43,7 @@ class OauthLoginController extends AbstractController
      *
      * @Route("/connect/zenodo/check", name="connect_zenodo_check")
      */
-    public function connectCheckAction(Request $request, ClientRegistry $clientRegistry, RequestStack $requestStack)
+    public function connectCheckAction(Request $request, ClientRegistry $clientRegistry, RequestStack $requestStack,LoggerInterface $logger)
     {
         // ** if you want to *authenticate* the user, then
         // leave this method blank and create a Guard authenticator
@@ -57,7 +58,11 @@ class OauthLoginController extends AbstractController
             $session = $requestStack->getSession();
 
             if (isset($_GET['error'])) {
+                if (!is_null($session->get('access_token'))){
+                    $session->remove('access_token');
 
+                }
+                $session->remove('knpu.oauth2_client_state');
                 if ($_GET['error'] === 'access_denied') {
                     $this->addFlash('error','You must authorize, in order to be authorized to make action on Zenodo via application');
                 } else {
@@ -83,7 +88,12 @@ class OauthLoginController extends AbstractController
 
         } catch (IdentityProviderException $e) {
 
-            var_dump($e->getMessage()); die;
+            $logger->error($e->getMessage(),['context'=>'oauth_connection_zenodo_app']);
+
+            $this->addFlash('error','Something wrong happened');
+
+            return $this->redirectToRoute('oauth_login');
+
         }
     }
 }

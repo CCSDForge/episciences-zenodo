@@ -142,7 +142,7 @@ class DepositController extends AbstractController
     public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient) : Response {
         $userInfo = $security->getToken()->getAttributes();
         $oauthSession = $requestStack->getSession()->get('access_token',[]);
-        if (!empty($oauthSession)){
+        if (empty($oauthSession)){
             return $this->redirectToRoute('oauth_login');
         }
         $token = $oauthSession->getToken();
