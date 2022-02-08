@@ -9,12 +9,25 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
+
 class OauthLoginController extends AbstractController
 {
+    public function oauthindex(Security $security)
+    {
+        $userInfo = $security->getToken()->getAttributes();
+        return $this->render('login/indexoauth.html.twig',[
+            'userInfo' => [
+                'lastname' => $userInfo['LASTNAME'],
+                'firstname' => $userInfo['FIRSTNAME'],
+            ]
+        ]);
+    }
+
     /**
-     * @Route("/testconnection", name="testconnec")
+     * @Route("/oauthzenodo", name="oauth_zenodo_authorization")
      */
-    public function testconnection(Request $request , ClientRegistry $clientRegistry)
+    public function oauthZenodo(Request $request , ClientRegistry $clientRegistry)
     {
         return $clientRegistry
             ->getClient('zenodo_main') // key used in config/packages/knpu_oauth2_client.yaml
@@ -22,7 +35,6 @@ class OauthLoginController extends AbstractController
                 'deposit:write', 'deposit:actions','user:email' // the scopes you want to access
             ]);
     }
-
     /**
      * After going to zenodo, you're redirected back here
      * because this is the "redirect_route" you configured
@@ -42,8 +54,18 @@ class OauthLoginController extends AbstractController
 
             // Try to get an access token using the authorization code grant.
             // Fetch and store the AccessToken
-
             $session = $requestStack->getSession();
+
+            if (isset($_GET['error'])) {
+
+                if ($_GET['error'] === 'access_denied') {
+                    $this->addFlash('error','You must authorize, in order to be authorized to make action on Zenodo via application');
+                } else {
+                    $this->addFlash('error','Something wrong happened');
+                }
+                return $this->redirectToRoute('oauth_login');
+            }
+
             $accessToken = $client->getAccessToken();
 
             $session->set('access_token', $accessToken);
@@ -57,8 +79,7 @@ class OauthLoginController extends AbstractController
                 // Update the stored access token for next time
                 $session->set('access_token', $accessToken);
             }
-
-            return $this->redirectToRoute('home');
+            return $this->redirectToRoute('create_deposit');
 
         } catch (IdentityProviderException $e) {
 

@@ -25,7 +25,7 @@ class LoginController extends AbstractController
 
     public function force(Request $request)
     {
-        return $this->redirectToRoute('create_deposit');
+        return $this->redirectToRoute('oauth_login');
     }
 
     /**

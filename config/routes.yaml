@@ -6,6 +6,10 @@ login:
     path: /login
     controller: App\Controller\LoginController::loginAction
 
+oauth_login:
+    path: /oauthlogin
+    controller: App\Controller\OauthLoginController::oauthindex
+
 force:
     path: /force
     controller: App\Controller\LoginController::force
@@ -21,6 +25,7 @@ create_deposit:
 edit_deposit:
     path: /deposit/{id}/edit
     controller: App\Controller\DepositController::edit
+
 delete_file:
     path: /deposit/{id}/delete/file/{fileId}
     controller: App\Controller\DepositController::deleteFile

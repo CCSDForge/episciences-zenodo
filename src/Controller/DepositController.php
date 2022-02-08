@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Service\OauthClient;
 use App\Service\UploadFile;
 use App\Service\ZenodoClient;
 use League\OAuth2\Client\Grant\AuthorizationCode;
@@ -22,20 +23,24 @@ use GuzzleHttp\TransferStats;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Component\HttpFoundation\RequestStack;
-
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class DepositController extends AbstractController
 {
 
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack): Response
+    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient): Response
     {
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
         $form = $this->createForm(DepositFormType::class);
         $form->handleRequest($request);
-        $oauthSession = $requestStack->getSession()->get('access_token',[]);
-        $token = $oauthSession->getToken();
         if ($form->isSubmitted() && $form->isValid()) {
+            $oauthSession = $requestStack->getSession()->get('access_token',[]);
+            if (empty($oauthSession)){
+                return $this->redirectToRoute('oauth_login');
+            }
+            $token = $oauthSession->getToken();
+            $oauthClient->checkTokenValidity();
             $deposit = $form->getData();
             $depositFile = $form->get('depositFile')->getData();
             // check if publish directly without file
@@ -124,19 +129,24 @@ class DepositController extends AbstractController
                 }
             }
         }
-        return $this->renderForm('deposit/index.html.twig', [
-            'controller_name' => 'DepositController',
-            'form' => $form,
-            'userInfo' => [
-                'lastname' => $userInfo['LASTNAME'],
-                'firstname' => $userInfo['FIRSTNAME'],
-            ]
-        ]);
+            return $this->renderForm('deposit/index.html.twig', [
+                'controller_name' => 'DepositController',
+                'form' => $form,
+                'userInfo' => [
+                    'lastname' => $userInfo['LASTNAME'],
+                    'firstname' => $userInfo['FIRSTNAME'],
+                ]
+            ]);
     }
 
-    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack) : Response {
+    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient) : Response {
         $userInfo = $security->getToken()->getAttributes();
         $oauthSession = $requestStack->getSession()->get('access_token',[]);
+        if (!empty($oauthSession)){
+            return $this->redirectToRoute('oauth_login');
+        }
+        $token = $oauthSession->getToken();
+        $oauthClient->checkTokenValidity();
         $token = $oauthSession->getToken();
         $response = $zenodoClient->getDepositById($id,$token);
         if ($response->getStatusCode() === 200) {
@@ -148,6 +158,11 @@ class DepositController extends AbstractController
             $form = $this->createForm(DepositFormType::class, $reformatDepositInfo);
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
+                $oauthSession = $requestStack->getSession()->get('access_token',[]);
+                if (empty($oauthSession)){
+                    return $this->redirectToRoute('oauth_login');
+                }
+                $oauthClient->checkTokenValidity();
                 $deposit = $form->getData();
                 $depositFile = $form->get('depositFile')->getData();
                 if ($form->getClickedButton() && 'new_version' === $form->getClickedButton()->getName()) {
@@ -272,10 +287,19 @@ class DepositController extends AbstractController
         }
     }
 
-    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack) {
+    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack, OauthClient $oauthClient) {
         if ($security->getToken()->getAttributes()){
             $oauthSession = $requestStack->getSession()->get('access_token',[]);
+            if (empty($oauthSession)){
+                $oauthRoute = $this->generateUrl('oauth_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+                return new JsonResponse([
+                    'status' => 403,
+                    'message' =>"You're disconnect from Zenodo please follow the link to reconnect and being allowed to make actions ",
+                    'link' => $oauthRoute
+                ]);
+            }
             $token = $oauthSession->getToken();
+            $oauthClient->checkTokenValidity();
             $fileInfoSended = json_decode($request->getContent(), true);
             $deposit = $zenodoClient->getDepositById($id,$token);
             if ($deposit->getStatusCode() === 200) {

@@ -147,7 +147,11 @@ $(function () {
                                 tmpNodeToRemove.remove();
                                 $(`<div class="alert alert-success" id="ajax_response">File ${tmpName} Deleted</div>`).insertBefore( "h1" );
                             }else{
-                                $(`<div class="alert alert-danger" id="ajax_response">${result.message}</div>`).insertBefore( "h1" );
+                                let link = ''
+                                if (result.link !== undefined ){
+                                    link = result.link
+                                }
+                                $(`<div class="alert alert-danger" id="ajax_response">${result.message} <a href="${link}">${link}</a></div>`).insertBefore( "h1" );
                             }
                         }
                     });
