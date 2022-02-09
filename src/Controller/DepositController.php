@@ -39,8 +39,8 @@ class DepositController extends AbstractController
             if (empty($oauthSession)){
                 return $this->redirectToRoute('oauth_login');
             }
-            $token = $oauthSession->getToken();
             $oauthClient->checkTokenValidity();
+            $token = $oauthSession->getToken();
             $deposit = $form->getData();
             $depositFile = $form->get('depositFile')->getData();
             // check if publish directly without file
@@ -145,7 +145,6 @@ class DepositController extends AbstractController
         if (empty($oauthSession)){
             return $this->redirectToRoute('oauth_login');
         }
-        $token = $oauthSession->getToken();
         $oauthClient->checkTokenValidity();
         $token = $oauthSession->getToken();
         $response = $zenodoClient->getDepositById($id,$token);
@@ -163,6 +162,7 @@ class DepositController extends AbstractController
                     return $this->redirectToRoute('oauth_login');
                 }
                 $oauthClient->checkTokenValidity();
+                $token = $oauthSession->getToken();
                 $deposit = $form->getData();
                 $depositFile = $form->get('depositFile')->getData();
                 if ($form->getClickedButton() && 'new_version' === $form->getClickedButton()->getName()) {
@@ -298,8 +298,8 @@ class DepositController extends AbstractController
                     'link' => $oauthRoute
                 ]);
             }
-            $token = $oauthSession->getToken();
             $oauthClient->checkTokenValidity();
+            $token = $oauthSession->getToken();
             $fileInfoSended = json_decode($request->getContent(), true);
             $deposit = $zenodoClient->getDepositById($id,$token);
             if ($deposit->getStatusCode() === 200) {
