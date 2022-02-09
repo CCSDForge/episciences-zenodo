@@ -27,15 +27,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class DepositController extends AbstractController
 {
 
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger /*,RequestStack $requestStack*/): Response
+    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger): Response
     {
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
         $form = $this->createForm(DepositFormType::class);
         $form->handleRequest($request);
         $token = $this->getParameter('app.SBX_TOKEN');
-//        $oauthSession = $requestStack->getSession()->get('access_token',[]);
-//        $token = $oauthSession->getToken();
         if ($form->isSubmitted() && $form->isValid()) {
             $deposit = $form->getData();
             $depositFile = $form->get('depositFile')->getData();
@@ -135,10 +133,8 @@ class DepositController extends AbstractController
         ]);
     }
 
-    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger/*, RequestStack $requestStack*/) : Response {
+    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger) : Response {
         $userInfo = $security->getToken()->getAttributes();
-//        $oauthSession = $requestStack->getSession()->get('access_token',[]);
-//        $token = $oauthSession->getToken();
         $token = $this->getParameter('app.SBX_TOKEN');
         $response = $zenodoClient->getDepositById($id,$token);
         if ($response->getStatusCode() === 200) {
@@ -186,7 +182,7 @@ class DepositController extends AbstractController
                     $action = 'save';
                     if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
                         $publishDeposit = $zenodoClient->publishDeposit($idDeposit,$token);
-                        if ($publishDeposit->getStatusCode() === 201) {
+                        if ($publishDeposit->getStatusCode() === 202) {
                             $action = 'publish';
                         } else {
                             $error = $publishDeposit->getBody()->getContents();
@@ -274,10 +270,8 @@ class DepositController extends AbstractController
         }
     }
 
-    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session /*,RequestStack $requestStack*/) {
+    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, LoggerInterface $logger) {
         if ($security->getToken()->getAttributes()){
-//            $oauthSession = $requestStack->getSession()->get('access_token',[]);
-//            $token = $oauthSession->getToken();
             $token = $this->getParameter('app.SBX_TOKEN');
             $fileInfoSended = json_decode($request->getContent(), true);
             $deposit = $zenodoClient->getDepositById($id,$token);
@@ -296,6 +290,11 @@ class DepositController extends AbstractController
                 if ($checkValidFile === true) {
                     $deleteFile = $zenodoClient->deleteFilesFromDeposit($token,$id,$fileId);
                 } else {
+                    $deposit->getBody()->seek(0);
+                    $logger->debug('error send : '.$request->getContent().' get '. $deposit->getBody()->getContents(), [
+                        // include extra "context" info in your logs
+                        'context' => 'APICall Delete File',
+                    ]);
                     return new JsonResponse([
                         'status' => 404,
                         'message' => 'File not found'

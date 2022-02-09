@@ -147,6 +147,7 @@ $(function () {
                                 tmpNodeToRemove.remove();
                                 $(`<div class="alert alert-success" id="ajax_response">File ${tmpName} Deleted</div>`).insertBefore( "h1" );
                             }else{
+                                $("#ajax_response").remove();
                                 $(`<div class="alert alert-danger" id="ajax_response">${result.message}</div>`).insertBefore( "h1" );
                             }
                         }
