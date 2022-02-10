@@ -3,10 +3,18 @@
 namespace App\Service;
 
 use GuzzleHttp\Client;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ZenodoClient
 {
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
+
     public function createEmptyDeposit(string $token) {
         $client = new Client();
         try {
@@ -199,4 +207,24 @@ class ZenodoClient
             'idNewVersion' => substr(strrchr(json_decode($response->getBody()->getContents(),true)['links']['latest_draft'], "/"), 1)
         ];
     }
+
+    public function zenodoFormatedFormError($contentReturned) {
+
+        $this->logger->debug($contentReturned, [
+            // include extra "context" info in your logs
+            'context' => 'APICall',
+        ]);
+        //api can return two type of array
+        $error = [];
+        if (array_key_exists('errors', json_decode($contentReturned, true))) {
+            foreach (json_decode($contentReturned, true)['errors'] as $value) {
+                $error[] = $value["message"];
+            }
+        } else {
+           $error[] = json_decode($contentReturned, true)['message'];
+        }
+        return $error;
+    }
+
+
 }

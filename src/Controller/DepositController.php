@@ -45,7 +45,7 @@ class DepositController extends AbstractController
                     $uploadFile->uploadFileLocally($this->getParameter('deposit_upload_directory'), $depositFile);
                 }
                 $emptyDeposit = $zenodoClient->createEmptyDeposit($token);
-                if ($emptyDeposit->getStatusCode() === 201){
+                if ($emptyDeposit->getStatusCode() === 201) {
                     $depositFile = $form->get('depositFile')->getData();
                     $tmpResponse = $emptyDeposit->getBody()->getContents();
                     // Recuperation du bucket pour l'ajout d'un fichier
@@ -62,19 +62,8 @@ class DepositController extends AbstractController
                                 $action = 'publish';
                             } else {
                                 $action = 'error';
-                                $error = $publishDeposit->getBody()->getContents();
-                                $logger->debug($error, [
-                                    // include extra "context" info in your logs
-                                    'context' => 'APICall',
-                                ]);
-                                //api can return two type of array
-                                if (array_key_exists('errors', json_decode($error, true))) {
-                                    foreach (json_decode($error, true)['errors'] as $value) {
-                                        $this->addFlash('error', $value["message"]);
-                                    }
-                                } else {
-                                    $this->addFlash('error', json_decode($error, true)['message']);
-                                }
+                                $message = $zenodoClient->zenodoFormatedFormError($publishDeposit->getBody()->getContents());
+                                $this->flashMessageError($message);
                             }
                         }
                         //log user action
@@ -92,34 +81,12 @@ class DepositController extends AbstractController
                             ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
                         }
                     } else {
-                        $error = $postMetadatas->getBody()->getContents();
-                        $logger->debug($error, [
-                            // include extra "context" info in your logs
-                            'context' => 'APICall',
-                        ]);
-                        //api can return two type of array
-                        if (array_key_exists('errors', json_decode($error, true))) {
-                            foreach (json_decode($error, true)['errors'] as $value) {
-                                $this->addFlash('error', $value["message"]);
-                            }
-                        } else {
-                            $this->addFlash('error', json_decode($error, true)['message']);
-                        }
+                        $message = $zenodoClient->zenodoFormatedFormError($postMetadatas->getBody()->getContents());
+                        $this->flashMessageError($message);
                     }
                 } else {
-                    $error = $emptyDeposit->getBody()->getContents();
-                    $logger->debug($error, [
-                        // include extra "context" info in your logs
-                        'context' => 'APICall',
-                    ]);
-                    //api can return two type of array
-                    if (array_key_exists('errors', json_decode($error, true))) {
-                        foreach (json_decode($error, true)['errors'] as $value) {
-                            $this->addFlash('error', $value["message"]);
-                        }
-                    } else {
-                        $this->addFlash('error', json_decode($error, true)['message']);
-                    }
+                    $message = $zenodoClient->zenodoFormatedFormError($emptyDeposit->getBody()->getContents());
+                    $this->flashMessageError($message);
                 }
             }
         }
@@ -185,35 +152,13 @@ class DepositController extends AbstractController
                         if ($publishDeposit->getStatusCode() === 202) {
                             $action = 'publish';
                         } else {
-                            $error = $publishDeposit->getBody()->getContents();
-                            $logger->debug($error, [
-                                // include extra "context" info in your logs
-                                'context' => 'APICall',
-                            ]);
-                            //api can return two type of array
-                            if (array_key_exists('errors', json_decode($error, true))) {
-                                foreach (json_decode($error, true)['errors'] as $value) {
-                                    $this->addFlash('error', $value["message"]);
-                                }
-                            } else {
-                                $this->addFlash('error', json_decode($error, true)['message']);
-                            }
+                            $message = $zenodoClient->zenodoFormatedFormError($publishDeposit->getBody()->getContents());
+                            $this->flashMessageError($message);
                         }
                     }
                 } else {
-                    $error = $postMetadata->getBody()->getContents();
-                    $logger->debug($error, [
-                        // include extra "context" info in your logs
-                        'context' => 'APICall',
-                    ]);
-                    //api can return two type of array
-                    if (array_key_exists('errors', json_decode($error, true))) {
-                        foreach (json_decode($error, true)['errors'] as $value) {
-                            $this->addFlash('error', $value["message"]);
-                        }
-                    } else {
-                        $this->addFlash('error', json_decode($error, true)['message']);
-                    }
+                    $message = $zenodoClient->zenodoFormatedFormError($postMetadata->getBody()->getContents());
+                    $this->flashMessageError($message);
                     $action = "error";
                 }
                 $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
@@ -246,7 +191,7 @@ class DepositController extends AbstractController
             }
         } else {
             $exceptionMessage = '';
-            switch ($response->getStatusCode()){
+            switch ($response->getStatusCode()) {
                 case 404:
                     $exceptionMessage = 'Deposit not found be sure you have the right informations';
                     break;
@@ -255,10 +200,8 @@ class DepositController extends AbstractController
                     break;
             }
             $logger->debug($response->getBody()->getContents(), [
-                // include extra "context" info in your logs
                 'context' => 'APICall',
             ]);
-
             return $this->render('zenodoexception/error.html.twig',[
                 'statusCode' => $response->getStatusCode(),
                 'message' => $exceptionMessage,
@@ -302,17 +245,19 @@ class DepositController extends AbstractController
                 }
                 return new JsonResponse($deleteFile);
             } else {
-                $error = $deposit->getBody()->getContents();
-                if (array_key_exists('errors', json_decode($error, true))) {
-                    foreach (json_decode($error, true)['errors'] as $value) {
-                        $this->addFlash('error', $value["message"]);
-                    }
-                } else {
-                    return new JsonResponse('error', json_decode($error, true)['message']);
+                $message = $zenodoClient->zenodoFormatedFormError($deposit->getBody()->getContents());
+                foreach ($message as $value) {
+                    return new JsonResponse('error',$value);
                 }
             }
         } else {
             return new JsonResponse('You must be authentified to make this action', Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    private function flashMessageError($message, $format = null): void {
+        foreach ($message as $value){
+            $this->addFlash('error',$value);
         }
     }
 }
