@@ -149,6 +149,11 @@ $(function () {
                             }else{
                                 $("#ajax_response").remove();
                                 $(`<div class="alert alert-danger" id="ajax_response">${result.message}</div>`).insertBefore( "h1" );
+                                let link = ''
+                                if (result.link !== undefined ){
+                                    link = result.link
+                                }
+                                $(`<div class="alert alert-danger" id="ajax_response">${result.message} <a href="${link}">${link}</a></div>`).insertBefore( "h1" );
                             }
                         }
                     });
