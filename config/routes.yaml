@@ -1,9 +1,9 @@
 home:
-    path: /home
+    path: /{_locale<en|fr>}/home
     controller: App\Controller\HomeController::index
 
 login:
-    path: /login
+    path: /{_locale<en|fr>}/login
     controller: App\Controller\LoginController::loginAction
 
 oauth_login:
@@ -11,19 +11,19 @@ oauth_login:
     controller: App\Controller\OauthLoginController::oauthindex
 
 force:
-    path: /force
+    path: /{_locale<en|fr>}/force
     controller: App\Controller\LoginController::force
 
 logout:
-    path: /logout
+    path: /{_locale<en|fr>}/logout
     controller: App\Controller\LoginController::logoutAction
 
 create_deposit:
-    path: /deposit
+    path: /{_locale<en|fr>}/deposit
     controller: App\Controller\DepositController::new
 
 edit_deposit:
-    path: /deposit/{id}/edit
+    path:  /{_locale<en|fr>}/deposit/{id}/edit
     controller: App\Controller\DepositController::edit
 
 delete_file:

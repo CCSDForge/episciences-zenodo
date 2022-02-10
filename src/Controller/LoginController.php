@@ -20,7 +20,7 @@ class LoginController extends AbstractController
     {
         $target = urlencode($this->getParameter('cas_login_target'));
         $url = 'https://' . $this->getParameter('cas_host') . '/login?service=';
-        return $this->redirect($url . $target . '/force');
+        return $this->redirect($url . $target . '/'.$request->getLocale().'/force');
     }
 
     public function force(Request $request)
@@ -31,10 +31,10 @@ class LoginController extends AbstractController
     /**
      * @Route("/logout", name="logout")
      */
-    public function logoutAction()
+    public function logoutAction(Request $request)
     {
         if (array_key_exists('casLogoutTarget', $this->getParameter('cas'))) {
-            \phpCAS::logoutWithRedirectService($this->getParameter('cas')['casLogoutTarget'] . '/home');
+            \phpCAS::logoutWithRedirectService($this->getParameter('cas')['casLogoutTarget'] .'/'.$request->getLocale(). '/home');
         } else {
             \phpCAS::logout();
         }

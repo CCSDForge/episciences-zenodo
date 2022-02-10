@@ -54,6 +54,7 @@ class DepositFormType extends AbstractType
             ->add('date', DateType::class, [
                 'widget' => 'choice',
                 'input'  => 'datetime',
+                'choice_translation_domain' => true
             ])
             ->add('author',CollectionType::class,[
                 'entry_type' => AuthorFormType::class,

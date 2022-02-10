@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}Create deposit{% endblock %}
+{% block title %}{{ 'Create deposit'|trans }}{% endblock %}
 {% block body %}
     {% include './navbar/navbar.html.twig' %}
     <style>
@@ -18,16 +18,15 @@
                 {{ message }}
             </div>
         {% endfor %}
-        <h1>Create Deposit</h1>
+        <h1 class="text-center">{{ 'Create deposit'|trans }}</h1>
         {{ form_start(form) }}
         {# because from label unwanted from collection#}
         {{ form_row(form._token) }}
         {{ form_row(form.depositFile) }}
-        <button type="button" id="clear-upload" class="btn btn-outline-warning w-100 mb-3">Clear upload files</button>
-        <h3>Upload type</h3>
+        <button type="button" id="clear-upload" class="btn btn-outline-warning w-100 mb-3">{{ 'Clear'|trans }} {{ 'Upload files'|trans }}</button>
         <div id="upload_type">{{ form_row(form.upload_type) }}</div>
         <div id="publication_type">{{ form_row(form.publication_type) }}</div>
-        <h3>Basic information</h3>
+        <h3>{{ 'Basic information'|trans }}</h3>
         {{ form_row(form.date) }}
         {{ form_row(form.title) }}
         {{ form_row(form.description) }}
@@ -44,7 +43,7 @@
         </div>
         <button type="button"
                 class="add-another-collection-widget btn btn-outline-info w-100 mb-3 mt-3"
-                data-list-selector="#creator-fields-list">Add another author</button>
+                data-list-selector="#creator-fields-list">{{ 'Add another author'|trans }}</button>
         <div class="row">
             <div class="col-6">
                 {{ form_row(form.save) }}
@@ -53,9 +52,6 @@
                 {{ form_row(form.save_publish) }}
             </div>
         </div>
-
-
-
 
         {# prevent from label unwanted from collection#}
 
