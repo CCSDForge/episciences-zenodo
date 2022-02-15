@@ -19,7 +19,6 @@ class Zenodo extends AbstractProvider
 
     public function getBaseAuthorizationUrl()
     {
-
         return "https://sandbox.zenodo.org/oauth/authorize";
 
     }

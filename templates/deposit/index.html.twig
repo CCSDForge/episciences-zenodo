@@ -34,7 +34,8 @@
              data-prototype="{{ form_widget(form.author.vars.prototype)|e }}"
              data-widget-tags="{{ '<div></div>'|e }}"
              data-widget-counter="{{ form.author|length }}"
-             data-edited="false">
+             data-edited="false"
+             data-text="{{ 'deleteAuthor'|trans }}">
             {% for creatorField in form.author %}
                 <div class="row">
                     {{ form_row(creatorField) }}

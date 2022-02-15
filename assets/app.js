@@ -33,7 +33,7 @@ $(function () {
     })
     function addDeleteBtnAuthor(id,node){
         let deleteBtn = document.createElement("button");
-        deleteBtn.innerHTML = "Delete this author";
+        deleteBtn.innerHTML = $("#creator-fields-list").data('text');
         deleteBtn.className = "btn btn-outline-danger w-100"
         deleteBtn.type = "button";
         deleteBtn.name = "formBtn";
@@ -133,7 +133,7 @@ $(function () {
                 $("#valid-modal").click(function () {
                     $('#exampleModal').modal('hide');
                     $.ajax({
-                        url: '/deposit/'+idDeposit+'/delete/file/'+tmpFileToDelete.data('id'),
+                        url: "/"+document.documentElement.lang+'/deposit/'+idDeposit+'/delete/file/'+tmpFileToDelete.data('id'),
                         type: 'DELETE',
                         data: JSON.stringify(fileInfo),
                         contentType: "application/json; charset=utf-8",
@@ -148,21 +148,18 @@ $(function () {
                                 $(`<div class="alert alert-success" id="ajax_response">File ${tmpName} Deleted</div>`).insertBefore( "h1" );
                             }else{
                                 $("#ajax_response").remove();
-                                $(`<div class="alert alert-danger" id="ajax_response">${result.message}</div>`).insertBefore( "h1" );
-                                let link = ''
-                                if (result.link !== undefined ){
-                                    link = result.link
+                                let link = '';
+                                let responseMessageLink = '';
+                                if (result.link !== undefined){
+                                    link = result.link;
+                                    responseMessageLink = `<a href="${link}">${link}</a></div>`;
                                 }
-                                $(`<div class="alert alert-danger" id="ajax_response">${result.message} <a href="${link}">${link}</a></div>`).insertBefore( "h1" );
+                                $(`<div class="alert alert-danger" id="ajax_response">${result.message} ${responseMessageLink}</div>`).insertBefore( "h1" );
                             }
                         }
                     });
                 });
-
             }
         });
     }
-
 });
-
-

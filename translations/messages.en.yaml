@@ -4,3 +4,15 @@ deleteResource: delete the resource
 book: Book
 preprint: Preprint
 editDeposit: Edit of deposit
+zenlinkOauth: Link your Zenodo account to the application
+accessDeniedClientDenied: In order to be authorized to perform action on Zenodo via application, you need to accept
+somethingWrong: Something went wrong
+depositNotFound: Deposit not found, be sure you have the right informations
+error: Error
+deleteAuthor: Delete this author
+Creator: Creator/Author
+nofilePublish: If you want to publish directly you must to upload at least one file
+zenodoDisconnected: You're disconnected from Zenodo please follow the link to reconnect and being allowed to make actions
+casUnauthorized: You must be authentified to perform this action
+fileNotFound: File not found
+successSaveOrPublish: Successfully completed! Find all the information here

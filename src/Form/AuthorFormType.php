@@ -14,7 +14,7 @@ class AuthorFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('creator',TextType::class,['attr' => ['class'=>'col-4']])
+            ->add('creator',TextType::class,['attr' => ['class'=>'col-4','placeholder' => 'Family name, given names']])
             ->add('affiliation',TextType::class, ['attr' => ['class'=>'col-4'], 'required' => false])
             ->add('orcid',TextType::class, ['attr' => ['class'=>'col-4','empty_data' => '',],'required' => false]);
     }

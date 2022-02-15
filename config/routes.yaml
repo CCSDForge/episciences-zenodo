@@ -7,8 +7,12 @@ login:
     controller: App\Controller\LoginController::loginAction
 
 oauth_login:
-    path: /oauthlogin
+    path: /{_locale<en|fr>}/oauthlogin
     controller: App\Controller\OauthLoginController::oauthindex
+
+connect_zenodo_check:
+   path: /{_locale<en|fr>}/connect/zenodo/check
+   controller: App\Controller\OauthLoginController::connectCheckAction
 
 force:
     path: /{_locale<en|fr>}/force
@@ -27,5 +31,5 @@ edit_deposit:
     controller: App\Controller\DepositController::edit
 
 delete_file:
-    path: /deposit/{id}/delete/file/{fileId}
+    path:  /{_locale<en|fr>}/deposit/{id}/delete/file/{fileId}
     controller: App\Controller\DepositController::deleteFile

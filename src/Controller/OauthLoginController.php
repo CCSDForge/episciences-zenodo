@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OauthLoginController extends AbstractController
 {
@@ -36,14 +37,8 @@ class OauthLoginController extends AbstractController
                 'deposit:write', 'deposit:actions','user:email' // the scopes you want to access
             ]);
     }
-    /**
-     * After going to zenodo, you're redirected back here
-     * because this is the "redirect_route" you configured
-     * in config/packages/knpu_oauth2_client.yaml
-     *
-     * @Route("/connect/zenodo/check", name="connect_zenodo_check")
-     */
-    public function connectCheckAction(Request $request, ClientRegistry $clientRegistry, RequestStack $requestStack,LoggerInterface $logger)
+
+    public function connectCheckAction(Request $request, ClientRegistry $clientRegistry, RequestStack $requestStack,LoggerInterface $logger, TranslatorInterface $translator)
     {
         // ** if you want to *authenticate* the user, then
         // leave this method blank and create a Guard authenticator
@@ -62,11 +57,12 @@ class OauthLoginController extends AbstractController
                     $session->remove('access_token');
 
                 }
+
                 $session->remove('knpu.oauth2_client_state');
                 if ($_GET['error'] === 'access_denied') {
-                    $this->addFlash('error','You must authorize, in order to be authorized to make action on Zenodo via application');
+                    $this->addFlash('error',$translator->trans('accessDeniedClientDenied'));
                 } else {
-                    $this->addFlash('error','Something wrong happened');
+                    $this->addFlash('error',$translator->trans('somethingWrong'));
                 }
                 return $this->redirectToRoute('oauth_login');
             }

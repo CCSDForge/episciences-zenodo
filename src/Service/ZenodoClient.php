@@ -9,8 +9,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class ZenodoClient
 {
 
-    public function __construct(LoggerInterface $logger)
+    private string $apiZenUrl;
+
+    public function __construct(LoggerInterface $logger, $apiZenUrl)
     {
+        $this->apiZenUrl = $apiZenUrl;
         $this->logger = $logger;
     }
 
@@ -18,7 +21,7 @@ class ZenodoClient
     public function createEmptyDeposit(string $token) {
         $client = new Client();
         try {
-            return $client->request('POST','https://sandbox.zenodo.org/api/deposit/depositions',[
+            return $client->request('POST',$this->apiZenUrl.'/api/deposit/depositions',[
                 'headers' => [
                     'Content-Type' => 'application/json'
                 ],
@@ -52,7 +55,7 @@ class ZenodoClient
         $pushMeta =  new Client();
         $metaData = $this->formatMetadatas($deposit);
         try {
-            return $pushMeta->request('PUT',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit,[
+            return $pushMeta->request('PUT',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit,[
                 'query'=> [
                     'access_token'=>$token
                 ],
@@ -97,7 +100,7 @@ class ZenodoClient
     public function publishDeposit($idDeposit, $token) {
         $publish =  new Client();
         try {
-            return $publish->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/publish",[
+            return $publish->request('POST',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit."/actions/publish",[
                 'query'=> [
                     'access_token'=>$token
                 ],
@@ -110,7 +113,7 @@ class ZenodoClient
     public function getDepositById($idDeposit,$token) {
         $client =  new Client();
         try {
-            return $client->request('GET',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit,[
+            return $client->request('GET',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit,[
                 'headers' => [
                     'Content-Type' => 'application/json'
                 ],
@@ -175,7 +178,7 @@ class ZenodoClient
 
     public function deleteFilesFromDeposit($token,$idDeposit,$fileId):array {
         $client =  new Client();
-        $response = $client->request('DELETE',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/files/".$fileId,[
+        $response = $client->request('DELETE',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit."/files/".$fileId,[
             'headers' => [
                 'Content-Type' => 'application/json'
             ],
@@ -193,7 +196,7 @@ class ZenodoClient
 
     public function newVersionDeposit($token,$idDeposit) {
         $client =  new Client();
-        $response = $client->request('POST',"https://sandbox.zenodo.org/api/deposit/depositions/".$idDeposit."/actions/newversion",[
+        $response = $client->request('POST',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit."/actions/newversion",[
             'headers' => [
                 'Content-Type' => 'application/json'
             ],

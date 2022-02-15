@@ -5,7 +5,7 @@ Create deposit: Création de dépôt
 editDeposit: Edition de dépôt
 Basic information: Informations générales
 Title: Titre
-Creator: Créateur
+Creator: Créateur/Auteur
 Upload type: Type de dépôt
 Dataset: Ensemble de données
 book: Livre
@@ -29,3 +29,15 @@ Edit: Editer
 Files in the Deposit: Fichiers dans le dépôt
 Delete: Supprimer
 Close: Fermer
+zenlinkOauth: Lier votre compte Zenodo à l'application
+accessDeniedClientDenied: Afin d'être autorisé à effectuer des actions sur Zenodo via l'application, vous devez accepter
+somethingWrong: Il y a eu un problème
+depositNotFound: Dépôt non trouvé, assurez-vous d'avoir les bonnes informations
+error: Erreur
+deleteAuthor: Supprimer cet auteur
+Family name, given names: Nom de famille, prénoms
+nofilePublish:  Si vous voulez publier directement, vous devez télécharger au moins un fichier
+zenodoDisconnected: Vous êtes déconnecté de Zenodo, veuillez suivre le lien pour vous reconnecter et être autorisé à effectuer des actions
+casUnauthorized:  Vous devez être authentifié pour effectuer cette action.
+fileNotFound: Fichier non trouvé
+successSaveOrPublish: Terminé avec succès ! Retrouvez toutes les informations ici

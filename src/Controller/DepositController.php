@@ -24,11 +24,12 @@ use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class DepositController extends AbstractController
 {
 
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient): Response
+    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator): Response
     {
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
@@ -45,7 +46,7 @@ class DepositController extends AbstractController
             $depositFile = $form->get('depositFile')->getData();
             // check if publish directly without file
             if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName() && (empty($depositFile))) {
-                $this->addFlash('error', 'If you want to publish directly you need to upload at least one file');
+                $this->addFlash('error', $translator->trans('nofilePublish'));
             } else {
                 if ($depositFile) {
                     $uploadFile->uploadFileLocally($this->getParameter('deposit_upload_directory'), $depositFile);
@@ -73,7 +74,7 @@ class DepositController extends AbstractController
                             }
                         }
                         //log user action
-                        $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
+                        $getDepositInfo = json_decode(file_get_contents($this->getParameter('app.API_ZEN_URL').'/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
                         $logInfo = array(
                             'username' => $userInfo['username'],
                             'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
@@ -84,7 +85,7 @@ class DepositController extends AbstractController
                         $logRepo->addLog($logInfo);
                         //addlog return true or exception
                         if ($action !== 'error') {
-                            ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
+                            ($action === 'publish') ? $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/record/".$idDeposit) : $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/deposit/".$idDeposit);
                         }
                     } else {
                         $message = $zenodoClient->zenodoFormatedFormError($postMetadatas->getBody()->getContents());
@@ -106,7 +107,7 @@ class DepositController extends AbstractController
             ]);
     }
 
-    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient) : Response {
+    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator) : Response {
         $userInfo = $security->getToken()->getAttributes();
         $oauthSession = $requestStack->getSession()->get('access_token',[]);
         if (empty($oauthSession)){
@@ -178,7 +179,7 @@ class DepositController extends AbstractController
                     $this->flashMessageError($message);
                     $action = "error";
                 }
-                $getDepositInfo = json_decode(file_get_contents('https://sandbox.zenodo.org/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
+                $getDepositInfo = json_decode(file_get_contents($this->getParameter('app.API_ZEN_URL').'/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
                 $logInfo = array(
                     'username' => $userInfo['username'],
                     'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
@@ -189,7 +190,7 @@ class DepositController extends AbstractController
                 $statusDeposit = $getDepositInfo['submitted'];
                 $logRepo->addLog($logInfo);
                 if ($action !== 'error') {
-                    ($action === 'publish') ? $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/record/".$idDeposit) : $this->addFlash('success', "Successfully completed check here all info : https://sandbox.zenodo.org/deposit/".$idDeposit);
+                    ($action === 'publish') ? $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/record/".$idDeposit) : $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/deposit/".$idDeposit);
                 }
 
                 return $this->redirect($request->getUri());
@@ -210,7 +211,7 @@ class DepositController extends AbstractController
             $exceptionMessage = '';
             switch ($response->getStatusCode()) {
                 case 404:
-                    $exceptionMessage = 'Deposit not found be sure you have the right informations';
+                    $exceptionMessage = $translator->trans('depositNotFound');
                     break;
                 default:
                     $exceptionMessage = json_decode($response->getBody()->getContents(),true)['message'];
@@ -230,14 +231,14 @@ class DepositController extends AbstractController
         }
     }
 
-    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack, OauthClient $oauthClient, LoggerInterface $logger) {
+    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack, OauthClient $oauthClient, LoggerInterface $logger, TranslatorInterface $translator) {
         if ($security->getToken()->getAttributes()){
             $oauthSession = $requestStack->getSession()->get('access_token',[]);
             if (empty($oauthSession)){
                 $oauthRoute = $this->generateUrl('oauth_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
                 return new JsonResponse([
                     'status' => 403,
-                    'message' =>"You're disconnect from Zenodo please follow the link to reconnect and being allowed to make actions ",
+                    'message' => $translator->trans('zenodoDisconnected'),
                     'link' => $oauthRoute
                 ]);
             }
@@ -267,18 +268,24 @@ class DepositController extends AbstractController
                     ]);
                     return new JsonResponse([
                         'status' => 404,
-                        'message' => 'File not found'
+                        'message' => $translator->trans('fileNotFound')
                     ]);
                 }
                 return new JsonResponse($deleteFile);
             } else {
                 $message = $zenodoClient->zenodoFormatedFormError($deposit->getBody()->getContents());
                 foreach ($message as $value) {
-                    return new JsonResponse('error',$value);
+                    return new JsonResponse([
+                        'status' => 403,
+                        'message' => $message
+                    ]);
                 }
             }
         } else {
-            return new JsonResponse('You must be authentified to make this action', Response::HTTP_FORBIDDEN);
+            return new JsonResponse([
+                'status' => 403,
+                'message' => $translator->trans('casUnauthorized')
+            ]);
         }
     }
 
