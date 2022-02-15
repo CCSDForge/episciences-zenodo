@@ -133,7 +133,7 @@ $(function () {
                 $("#valid-modal").click(function () {
                     $('#exampleModal').modal('hide');
                     $.ajax({
-                        url: "/"+document.documentElement.lang+'/deposit/'+idDeposit+'/delete/file/'+tmpFileToDelete.data('id'),
+                        url: '/'+document.documentElement.lang+'/deposit/'+idDeposit+'/delete/file/'+tmpFileToDelete.data('id'),
                         type: 'DELETE',
                         data: JSON.stringify(fileInfo),
                         contentType: "application/json; charset=utf-8",
@@ -152,7 +152,7 @@ $(function () {
                                 let responseMessageLink = '';
                                 if (result.link !== undefined){
                                     link = result.link;
-                                    responseMessageLink = `<a href="${link}">${link}</a></div>`;
+                                    responseMessageLink = `<a href="${link}">${link}</a>`;
                                 }
                                 $(`<div class="alert alert-danger" id="ajax_response">${result.message} ${responseMessageLink}</div>`).insertBefore( "h1" );
                             }
