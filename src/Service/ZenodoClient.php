@@ -51,9 +51,9 @@ class ZenodoClient
         }
     }
 
-    public function postMetadataInDeposit($deposit, $idDeposit, $token) {
+    public function postMetadataInDeposit($deposit, $idDeposit, $token, $originalMetadata = null) {
         $pushMeta =  new Client();
-        $metaData = $this->formatMetadatas($deposit);
+        $metaData = $this->formatMetadatas($deposit,$originalMetadata);
         try {
             return $pushMeta->request('PUT',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit,[
                 'query'=> [
@@ -69,7 +69,7 @@ class ZenodoClient
 
     }
 
-    public function formatMetadatas($deposit): array {
+    public function formatMetadatas($deposit, $originalMetadata): array {
         $metaData = array(
             'title' => $deposit['title'],
             'upload_type' => $deposit['upload_type'],
@@ -93,6 +93,19 @@ class ZenodoClient
         }
         if ($metaData['upload_type'] === 'publication') {
             $metaData['publication_type'] = $deposit['publication_type'];
+        }
+
+        // case of edition of deposit, Zenodo don't update information
+        // but erase everything except information sended
+        // So we need to overload the information array from zenodo
+
+        if (!empty($originalMetadata)) {
+            foreach ($originalMetadata as $key => $value){
+                if (array_key_exists($key, $metaData)){
+                   $originalMetadata[$key] = $metaData[$key];
+                }
+            }
+            return $originalMetadata;
         }
         return $metaData;
     }
