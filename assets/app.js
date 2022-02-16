@@ -132,6 +132,9 @@ $(function () {
                 let tmpName = tmpFileToDelete.data('filename');
                 $("#valid-modal").click(function () {
                     $('#exampleModal').modal('hide');
+                    $('#valid-modal').unbind().bind('click', function(event){
+                        event.preventDefault();
+                    });
                     $.ajax({
                         url: '/'+document.documentElement.lang+'/deposit/'+idDeposit+'/delete/file/'+tmpFileToDelete.data('id'),
                         type: 'DELETE',
