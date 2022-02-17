@@ -51,9 +51,16 @@ class ZenodoClient
         }
     }
 
-    public function postMetadataInDeposit($deposit, $idDeposit, $token, $originalMetadata = null) {
+    public function postMetadataInDeposit($deposit, $idDeposit, $token, $originalDeposit = []) {
         $pushMeta =  new Client();
+        $originalMetadata = [];
+        if (!empty($originalDeposit)) {
+            $originalMetadata = $originalDeposit['metadata'];
+        }
         $metaData = $this->formatMetadatas($deposit,$originalMetadata);
+        if (!empty($originalDeposit) && ($originalDeposit['state'] ===  "done" && $originalDeposit['submitted'] === true && $originalMetadata['doi'] !== "")) {
+            $this->unlockPublishedDepForEditing($idDeposit, $token);
+        }
         try {
             return $pushMeta->request('PUT',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit,[
                 'query'=> [
@@ -67,6 +74,19 @@ class ZenodoClient
             return $e->getResponse();
         }
 
+    }
+
+    public function unlockPublishedDepForEditing($idDeposit, $token){
+        $pushMeta =  new Client();
+        try {
+            return $pushMeta->request('POST',$this->apiZenUrl."/api/deposit/depositions/".$idDeposit."/actions/edit",[
+                'query'=> [
+                    'access_token'=>$token
+                ],
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $e->getResponse();
+        }
     }
 
     public function formatMetadatas($deposit, $originalMetadata): array {
@@ -104,6 +124,9 @@ class ZenodoClient
                 if (array_key_exists($key, $metaData)){
                    $originalMetadata[$key] = $metaData[$key];
                 }
+            }
+            if (array_key_exists("publication_type",$metaData)){
+                $originalMetadata['publication_type'] = $metaData['publication_type'];
             }
             return $originalMetadata;
         }
@@ -183,7 +206,7 @@ class ZenodoClient
         }
 
         if (!empty($depositInfo['metadata']['upload_type'] === 'publication')) {
-            $ReformatDepositInfo['publication_type'] = $depositInfo['metadata']['publication_type'];
+            $reformatDepositInfo['publication_type'] = $depositInfo['metadata']['publication_type'];
         }
 
         return $reformatDepositInfo;

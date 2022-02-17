@@ -160,7 +160,7 @@ class DepositController extends AbstractController
                     }
                 }
                 // ajout des données après l'ajout du fichier (si il y en a un)
-                $postMetadata = $zenodoClient->postMetadataInDeposit($deposit,$originalId,$token,$depositInfo['metadata']);
+                $postMetadata = $zenodoClient->postMetadataInDeposit($deposit,$originalId,$token,$depositInfo);
                 $idDeposit = json_decode($response->getBody(),true)['id'];
                 if ($postMetadata->getStatusCode() === 200) {
                     // Define the action for the log
