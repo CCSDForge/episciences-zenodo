@@ -21,7 +21,7 @@ class ZenodoClientTest extends KernelTestCase
             $container = static::getContainer();
 
             $zenodoClient = $container->get(ZenodoClient::class);
-            $formatMetaData = $zenodoClient->formatMetadatas($this->formdepositProviderSimple());
+            $formatMetaData = $zenodoClient->formatMetadatas($this->formdepositProviderSimple(),[]);
             $this->assertIsArray($formatMetaData);
             $this->assertArrayHasKey('title', $formatMetaData );
             $this->assertArrayHasKey('name', $formatMetaData['creators'][0]);
@@ -40,7 +40,7 @@ class ZenodoClientTest extends KernelTestCase
         $container = static::getContainer();
 
         $zenodoClient = $container->get(ZenodoClient::class);
-        $formatMetaData = $zenodoClient->formatMetadatas($this->formdepositProviderRichAuthor());
+        $formatMetaData = $zenodoClient->formatMetadatas($this->formdepositProviderRichAuthor(),[]);
         $this->assertIsArray($formatMetaData);
         $this->assertEquals('dataset', $formatMetaData['upload_type']);
         $this->assertArrayNotHasKey('publication_type', $formatMetaData);

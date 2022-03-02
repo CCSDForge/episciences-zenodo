@@ -16,3 +16,7 @@ zenodoDisconnected: You're disconnected from Zenodo please follow the link to re
 casUnauthorized: You must be authentified to perform this action
 fileNotFound: File not found
 successSaveOrPublish: Successfully completed! Find all the information here
+myDeposit: List of my deposits
+createDeposit: Create a deposit
+nameDep: Name of deposits
+LastUpdate: Last update

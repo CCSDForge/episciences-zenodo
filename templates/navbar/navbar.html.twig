@@ -13,7 +13,14 @@
                         <li><a class="dropdown-item" href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge(app.request.query.all|merge({_locale: 'fr'}))) }}">Français</a></li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('list_deposit') }}">{{ 'myDeposit'|trans }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('create_deposit') }}">{{ 'createDeposit'|trans }}</a>
+                </li>
             </ul>
+
 
             <div class="d-flex">
                 <p class="me-4 my-auto h5 text-white">{{ 'Welcome'|trans }} {{ userInfo.firstname }} {{ userInfo.lastname }}</p>

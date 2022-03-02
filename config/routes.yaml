@@ -33,3 +33,7 @@ edit_deposit:
 delete_file:
     path:  /{_locale<en|fr>}/deposit/{id}/delete/file/{fileId}
     controller: App\Controller\DepositController::deleteFile
+
+list_deposit:
+  path:  /{_locale<en|fr>}/deposit/list
+  controller: App\Controller\DepositController::listDeposit

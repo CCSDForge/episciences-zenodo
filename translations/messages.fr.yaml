@@ -41,3 +41,7 @@ zenodoDisconnected: Vous êtes déconnecté de Zenodo, veuillez suivre le lien p
 casUnauthorized:  Vous devez être authentifié pour effectuer cette action.
 fileNotFound: Fichier non trouvé
 successSaveOrPublish: Terminé avec succès ! Retrouvez toutes les informations ici
+myDeposit: Liste de mes dépôts
+createDeposit: Créer un dépot
+nameDep: Nom de dépôts
+LastUpdate: Dernière modification

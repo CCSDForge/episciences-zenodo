@@ -109,6 +109,12 @@
     "guzzlehttp/psr7": {
         "version": "2.1.0"
     },
+    "knplabs/knp-components": {
+        "version": "v3.5.0"
+    },
+    "knplabs/knp-paginator-bundle": {
+        "version": "v5.8.0"
+    },
     "knpuniversity/oauth2-client-bundle": {
         "version": "2.9",
         "recipe": {

@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    {% include './navbar/navbar.html.twig' %}
+    <div class="container-fluid">
+        <div class="row center-table">
+            <table class="styled-table">
+                <tr class="text-center">
+                    {# sorting of properties based on query components #}
+                    <th{% if pagination.isSorted('a.zenodo_title') %} class="sorted"{% endif %}>
+                        {{ knp_pagination_sortable(pagination, 'nameDep'|trans, 'a.zenodo_title') }}
+                    </th>
+                    <th{% if pagination.isSorted('a.doi_deposit_version') %} class="sorted"{% endif %}>
+                        {{ knp_pagination_sortable(pagination, 'ID version', 'a.doi_deposit_version') }}
+                    </th>
+                    <th{% if pagination.isSorted('a.doi_deposit_version') %} class="sorted"{% endif %}>
+                        {{ knp_pagination_sortable(pagination, 'LastUpdate'|trans, 'a.doi_deposit_version') }}
+                    </th>
+                </tr>
+                {# table body #}
+                {% for article in pagination %}
+                    <tr {% if loop.index is odd %}class="color"{% endif %}>
+                        <td class="text-center"><a href="{{ path("edit_deposit", { 'id': article.doi_deposit_version  })}}">{{ article.zenodo_title }}</a></td>
+                        <td class="text-center">{{ article.doi_deposit_version }}</td>
+                        <td class="text-center">{{ article.updated_date|format_datetime()}}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            {# display navigation #}
+            <div class="navigation d-flex justify-content-center">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

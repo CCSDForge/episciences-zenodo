@@ -38,11 +38,11 @@ class ZenodoClient
     public function postFileInDeposit($file,$deposit,$token,$pathLocalFile) {
         foreach ($file as $fileInfo) {
             $filename = $fileInfo->getClientOriginalName();
-            $bucket = array_column(json_decode($deposit,true),'bucket')[0];
+            $bucket = json_decode($deposit, true)['links']['bucket'];
             $path = $pathLocalFile;
             $handle = fopen($path.'/'.$filename,'rb');
             $requestFile =  new Client();
-            $requestFile = $requestFile->request('PUT',"$bucket/$filename",[
+            $requestFile->request('PUT',"$bucket/$filename",[
                 'query'=> [
                     'access_token'=>$token
                 ],
@@ -240,10 +240,12 @@ class ZenodoClient
                 'access_token'=> $token
             ],
         ]);
+        $content = json_decode($response->getBody()->getContents(),true);
         return [
             'status' => $response->getStatusCode(),
             'message' => $response->getReasonPhrase(),
-            'idNewVersion' => substr(strrchr(json_decode($response->getBody()->getContents(),true)['links']['latest_draft'], "/"), 1)
+            'idNewVersion' => substr(strrchr($content['links']['latest_draft'], "/"), 1),
+            'content' => $content,
         ];
     }
 
