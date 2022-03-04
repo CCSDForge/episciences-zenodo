@@ -28,6 +28,22 @@ class LogUserActionRepository extends ServiceEntityRepository
         $this->paginator = $paginator;
         parent::__construct($registry, LogUserAction::class);
     }
+    public function isExistingDeposit($username,$idDoiVersion){
+        //Exclusively get deposit created in app
+        try {
+            $query = $this->createQueryBuilder('a')
+                ->where('a.username = :username')
+                ->andWhere('a.doi_deposit_version = :doi_deposit_version')
+                ->setParameters(new ArrayCollection([
+                    new Parameter(':username', $username),
+                    new Parameter(':doi_deposit_version',$idDoiVersion),
+                ]))
+                ->getQuery();
+            return $query->getOneOrNullResult();
+        } catch (NonUniqueResultException $e) {
+            return throwException($e->getMessage());
+        }
+    }
 
     public function addLog(array $logInfo){
         $existingLog = $this->getlog([

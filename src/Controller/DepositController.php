@@ -115,111 +115,122 @@ class DepositController extends AbstractController
         }
         $oauthClient->checkTokenValidity();
         $token = $oauthSession->getToken();
-        $response = $zenodoClient->getDepositById($id,$token);
-        if ($response->getStatusCode() === 200) {
-            $depositInfo = json_decode($response->getBody()->getContents(),true);
-            $originalId = json_decode($response->getBody(), true)['record_id'];
-            $fileInfo = $zenodoClient->formatFilesInfoFromDeposit($depositInfo['files']);
-            $reformatDepositInfo = $zenodoClient->formatMetadatasFromDeposit($depositInfo);
-            $statusDeposit = $depositInfo['submitted'];
-            $form = $this->createForm(DepositFormType::class, $reformatDepositInfo);
-            $form->handleRequest($request);
-            if ($form->isSubmitted() && $form->isValid()) {
-                $oauthSession = $requestStack->getSession()->get('access_token',[]);
-                if (empty($oauthSession)){
-                    return $this->redirectToRoute('oauth_login');
-                }
-                $oauthClient->checkTokenValidity();
-                $token = $oauthSession->getToken();
-                $deposit = $form->getData();
-                $depositFile = $form->get('depositFile')->getData();
-                if ($form->getClickedButton() && 'new_version' === $form->getClickedButton()->getName()) {
-                    $newVersion = $zenodoClient->newVersionDeposit($token,$depositInfo['id']);
-                    if ($newVersion['status'] === 201) {
-                        $logInfo = array(
-                            'username' => $userInfo['username'],
-                            'doi_deposit_fix' => $newVersion['content']['conceptrecid'],
-                            'doi_deposit_version' => $newVersion['idNewVersion'],
-                            'date'=> new \DateTime(),
-                            'action' => 'new_version',
-                            'zen_title'=>$newVersion['content']['metadata']['title']
-                        );
-                        $logRepo->addLog($logInfo);
-                        return $this->redirectToRoute('edit_deposit', ['id' => $newVersion['idNewVersion']]);
-                    } else {
-                        $this->addFlash('error', "An error occurred".$newVersion['message'] );
-                        return $this->redirect($request->getUri());
+        if (!is_null($logRepo->isExistingDeposit($userInfo['username'],$id))){
+            $response = $zenodoClient->getDepositById($id,$token);
+            if ($response->getStatusCode() === 200) {
+                $depositInfo = json_decode($response->getBody()->getContents(),true);
+                $originalId = json_decode($response->getBody(), true)['record_id'];
+                $fileInfo = $zenodoClient->formatFilesInfoFromDeposit($depositInfo['files']);
+                $reformatDepositInfo = $zenodoClient->formatMetadatasFromDeposit($depositInfo);
+                $statusDeposit = $depositInfo['submitted'];
+                $form = $this->createForm(DepositFormType::class, $reformatDepositInfo);
+                $form->handleRequest($request);
+                if ($form->isSubmitted() && $form->isValid()) {
+                    $oauthSession = $requestStack->getSession()->get('access_token',[]);
+                    if (empty($oauthSession)){
+                        return $this->redirectToRoute('oauth_login');
                     }
-                }
-                if(!is_null($depositFile)) {
-                    $uploadFile->uploadFileLocally($this->getParameter('deposit_upload_directory'), $depositFile);
-                    $zenodoClient->postFileInDeposit($depositFile,$response->getBody(),$token,$this->getParameter('deposit_upload_directory'));
-                }
-                // ajout des données après l'ajout du fichier (si il y en a un)
-                $postMetadata = $zenodoClient->postMetadataInDeposit($deposit,$originalId,$token,$depositInfo);
-                $idDeposit = json_decode($response->getBody(),true)['id'];
-                if ($postMetadata->getStatusCode() === 200) {
-                    // Define the action for the log
-                    $action = 'update';
-                    if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
-                        $publishDeposit = $zenodoClient->publishDeposit($idDeposit,$token);
-                        if ($publishDeposit->getStatusCode() === 202) {
-                            $action = 'publish';
+                    $oauthClient->checkTokenValidity();
+                    $token = $oauthSession->getToken();
+                    $deposit = $form->getData();
+                    $depositFile = $form->get('depositFile')->getData();
+                    if ($form->getClickedButton() && 'new_version' === $form->getClickedButton()->getName()) {
+                        $newVersion = $zenodoClient->newVersionDeposit($token,$depositInfo['id']);
+                        if ($newVersion['status'] === 201) {
+                            $logInfo = array(
+                                'username' => $userInfo['username'],
+                                'doi_deposit_fix' => $newVersion['content']['conceptrecid'],
+                                'doi_deposit_version' => $newVersion['idNewVersion'],
+                                'date'=> new \DateTime(),
+                                'action' => 'new_version',
+                                'zen_title'=>$newVersion['content']['metadata']['title']
+                            );
+                            $logRepo->addLog($logInfo);
+                            return $this->redirectToRoute('edit_deposit', ['id' => $newVersion['idNewVersion']]);
                         } else {
-                            $message = $zenodoClient->zenodoFormatedFormError($publishDeposit->getBody()->getContents());
-                            $this->flashMessageError($message);
+                            $this->addFlash('error', "An error occurred".$newVersion['message'] );
+                            return $this->redirect($request->getUri());
                         }
                     }
-                } else {
-                    $message = $zenodoClient->zenodoFormatedFormError($postMetadata->getBody()->getContents());
-                    $this->flashMessageError($message);
-                    $action = "error";
-                }
-                $getDepositInfo = json_decode(file_get_contents($this->getParameter('app.API_ZEN_URL').'/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
-                $logInfo = array(
-                    'username' => $userInfo['username'],
-                    'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
-                    'doi_deposit_version' => $getDepositInfo['id'],
-                    'date'=> new \DateTime(),
-                    'action' => $action,
-                    'zen_title'=>$getDepositInfo['metadata']['title']
-                );
-                $statusDeposit = $getDepositInfo['submitted'];
-                $logRepo->addLog($logInfo);
-                if ($action !== 'error') {
-                    ($action === 'publish') ? $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/record/".$idDeposit) : $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/deposit/".$idDeposit);
-                }
+                    if(!is_null($depositFile)) {
+                        $uploadFile->uploadFileLocally($this->getParameter('deposit_upload_directory'), $depositFile);
+                        $zenodoClient->postFileInDeposit($depositFile,$response->getBody(),$token,$this->getParameter('deposit_upload_directory'));
+                    }
+                    // ajout des données après l'ajout du fichier (si il y en a un)
+                    $postMetadata = $zenodoClient->postMetadataInDeposit($deposit,$originalId,$token,$depositInfo);
+                    $idDeposit = json_decode($response->getBody(),true)['id'];
+                    if ($postMetadata->getStatusCode() === 200) {
+                        // Define the action for the log
+                        $action = 'update';
+                        if ($form->getClickedButton() && 'save_publish' === $form->getClickedButton()->getName()) {
+                            $publishDeposit = $zenodoClient->publishDeposit($idDeposit,$token);
+                            if ($publishDeposit->getStatusCode() === 202) {
+                                $action = 'publish';
+                            } else {
+                                $message = $zenodoClient->zenodoFormatedFormError($publishDeposit->getBody()->getContents());
+                                $this->flashMessageError($message);
+                            }
+                        }
+                    } else {
+                        $message = $zenodoClient->zenodoFormatedFormError($postMetadata->getBody()->getContents());
+                        $this->flashMessageError($message);
+                        $action = "error";
+                    }
+                    $getDepositInfo = json_decode(file_get_contents($this->getParameter('app.API_ZEN_URL').'/api/deposit/depositions/'.$idDeposit.'?access_token='.$token),true);
+                    $logInfo = array(
+                        'username' => $userInfo['username'],
+                        'doi_deposit_fix' => $getDepositInfo['conceptrecid'],
+                        'doi_deposit_version' => $getDepositInfo['id'],
+                        'date'=> new \DateTime(),
+                        'action' => $action,
+                        'zen_title'=>$getDepositInfo['metadata']['title']
+                    );
+                    $statusDeposit = $getDepositInfo['submitted'];
+                    $logRepo->addLog($logInfo);
+                    if ($action !== 'error') {
+                        ($action === 'publish') ? $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/record/".$idDeposit) : $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/deposit/".$idDeposit);
+                    }
 
-                return $this->redirect($request->getUri());
+                    return $this->redirect($request->getUri());
+                } else {
+                    return $this->renderForm('deposit/edit.html.twig', [
+                        'controller_name' => 'DepositController',
+                        'form' => $form,
+                        'filesInfo' => $fileInfo,
+                        'idDeposit' => $id,
+                        'DepositPublished' => $statusDeposit,
+                        'userInfo' => [
+                            'lastname' => $userInfo['LASTNAME'],
+                            'firstname' => $userInfo['FIRSTNAME'],
+                        ]
+                    ]);
+                }
             } else {
-                return $this->renderForm('deposit/edit.html.twig', [
-                    'controller_name' => 'DepositController',
-                    'form' => $form,
-                    'filesInfo' => $fileInfo,
-                    'idDeposit' => $id,
-                    'DepositPublished' => $statusDeposit,
+                $exceptionMessage = '';
+                switch ($response->getStatusCode()) {
+                    case 404:
+                        $exceptionMessage = $translator->trans('depositNotFound');
+                        break;
+                    default:
+                        $exceptionMessage = json_decode($response->getBody()->getContents(),true)['message'];
+                        break;
+                }
+                $logger->debug($response->getBody()->getContents(), [
+                    'context' => 'APICall',
+                ]);
+                return $this->render('zenodoexception/error.html.twig',[
+                    'statusCode' => $response->getStatusCode(),
+                    'message' => $exceptionMessage,
                     'userInfo' => [
                         'lastname' => $userInfo['LASTNAME'],
                         'firstname' => $userInfo['FIRSTNAME'],
                     ]
                 ]);
             }
-        } else {
-            $exceptionMessage = '';
-            switch ($response->getStatusCode()) {
-                case 404:
-                    $exceptionMessage = $translator->trans('depositNotFound');
-                    break;
-                default:
-                    $exceptionMessage = json_decode($response->getBody()->getContents(),true)['message'];
-                    break;
-            }
-            $logger->debug($response->getBody()->getContents(), [
-                'context' => 'APICall',
-            ]);
+        }else{
             return $this->render('zenodoexception/error.html.twig',[
-                'statusCode' => $response->getStatusCode(),
-                'message' => $exceptionMessage,
+                'statusCode' => '403',
+                'message' => $translator->trans('blockDeposit'),
                 'userInfo' => [
                     'lastname' => $userInfo['LASTNAME'],
                     'firstname' => $userInfo['FIRSTNAME'],

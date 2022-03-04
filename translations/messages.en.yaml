@@ -20,3 +20,4 @@ myDeposit: List of my deposits
 createDeposit: Create a deposit
 nameDep: Name of deposits
 LastUpdate: Last update
+blockDeposit: You cannot access deposits created outside the application
