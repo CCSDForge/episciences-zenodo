@@ -19,8 +19,7 @@ class Zenodo extends AbstractProvider
 
     public function getBaseAuthorizationUrl()
     {
-        return "https://sandbox.zenodo.org/oauth/authorize";
-
+        return $_ENV['APP_API_ZEN_URL']."/oauth/authorize";
     }
 
     /**
@@ -33,7 +32,7 @@ class Zenodo extends AbstractProvider
 
     public function getBaseAccessTokenUrl(array $params)
     {
-        return 'https://sandbox.zenodo.org/oauth/token';
+        return $_ENV['APP_API_ZEN_URL']."/oauth/token";
     }
 
     /**
