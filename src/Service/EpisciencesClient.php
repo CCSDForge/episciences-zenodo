@@ -29,7 +29,8 @@ class EpisciencesClient {
             foreach (json_decode($journals->getBody()->getContents(),true) as $value) {
                 $episcienceJournal[] = [
                     'title' => $value[1]['Title'],
-                    'address' => $value[4]['Address']
+                    'address' => $value[4]['Address'],
+                    'Accepted-repositories'=> $value[5]['Accepted-repositories'],
                 ];
             }
             return $episcienceJournal;
@@ -43,7 +44,9 @@ class EpisciencesClient {
         $journals = $this->getJournals();
         $journalArray = [];
         foreach ($journals as $value){
-            $journalArray[$value['title']] =  $value['address'];
+            if (in_array('Zenodo', $value['Accepted-repositories'], true)) {
+                $journalArray[$value['title']] =  $value['address'];
+            }
         }
         return $journalArray;
     }
