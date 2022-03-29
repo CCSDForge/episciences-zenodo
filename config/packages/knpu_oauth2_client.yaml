@@ -13,8 +13,8 @@ knpu_oauth2_client:
             # provider_options: {}
 
             # now, all the normal options!
-            client_id: ''
-            client_secret: ''
+            client_id: '%env(APP_ID_ZEN)%'
+            client_secret: '%env(APP_ID_SECRET)%'
             redirect_route: connect_zenodo_check
             redirect_params: {}
             # whether to check OAuth2 "state": defaults to true

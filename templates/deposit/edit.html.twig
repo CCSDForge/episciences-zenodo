@@ -20,7 +20,12 @@
                 {{ message }}
             </div>
         {% endfor %}
-
+        {% if doiVersionForEpi is not null %}
+            <div class="alert alert-success">
+                <span>{{ 'goFurtherEpi'|trans }}</span>
+                <a href="{{ path('link_episciences',{ doi: doiVersionForEpi, ci: conceptIdForEpi  }) }}">{{ 'clickhere'|trans }}</a>.
+            </div>
+        {% endif %}
         <!-- Modal -->
         <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -59,7 +64,6 @@
                 {% endfor %}
             </div>
         {% endif %}
-
         {{ form_start(form) }}
         {# because from label unwanted from collection#}
         {{ form_row(form._token) }}

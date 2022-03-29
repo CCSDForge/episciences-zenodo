@@ -46,3 +46,13 @@ createDeposit: Créer un dépot
 nameDep: Nom de dépôts
 LastUpdate: Dernière modification
 blockDeposit: Vous ne pouvez pas accéder aux dépôts créés en dehors de l'application
+gotoEpisciences: Aller sur Episcience
+textModalEpi: Si vous souhaitez aller plus loin et publier l'article dans une revue Episciences, vous pouvez le faire en sélectionnant la revue désirée, puis en cliquant sur le bouton de redirection, vous serez donc redirigée vers le formulaire adéquat.
+goFurtherEpi: Aller plus loin avec Episciences ?
+journals: Epi-revues
+descRedirectEpi: Choisissez votre revue ci-dessous, vous serez redirigé sur le site Episciences afin d'y soumettre votre article
+Confirm: Confirmer
+Select journal: Sélectionner revue
+doiOfDep: DOI du dépôt
+doiNotFound: DOI non trouvé
+clickhere: Cliquez ici

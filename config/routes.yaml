@@ -37,3 +37,7 @@ delete_file:
 list_deposit:
   path:  /{_locale<en|fr>}/deposit/list
   controller: App\Controller\DepositController::listDeposit
+
+link_episciences:
+  path: /{_locale<en|fr>}/deposit/linkepisciences
+  controller: App\Controller\DepositController::episcienceLink

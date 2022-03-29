@@ -166,4 +166,10 @@ $(function () {
             }
         });
     }
+    $("#episciences_form_episcienceslink_journals").change(function (e){
+        let selectedJournal =  $("#episciences_form_episcienceslink_journals option:selected").val();
+        if (selectedJournal !== undefined){
+            $("#form-epi-link").prop("action", selectedJournal+"/submit");
+        }
+    });
 });

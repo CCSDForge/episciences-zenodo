@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Form\EpisciencesFormType;
+use App\Service\EpisciencesClient;
 use App\Service\OauthClient;
 use App\Service\UploadFile;
 use App\Service\ZenodoClient;
@@ -14,27 +16,26 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
-use GuzzleHttp\Client as guzzleClient;
 use App\Form\DepositFormType;
 use Symfony\Component\Security\Core\Security;
 use App\Repository\LogUserActionRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use GuzzleHttp\TransferStats;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-
 class DepositController extends AbstractController
 {
 
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator): Response
+    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, EpisciencesClient $episciencesClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator): Response
     {
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
         $form = $this->createForm(DepositFormType::class);
         $form->handleRequest($request);
+        $doiVersionForEpi = null;
+        $conceptIdForEpi = null;
         if ($form->isSubmitted() && $form->isValid()) {
             $oauthSession = $requestStack->getSession()->get('access_token',[]);
             if (empty($oauthSession)){
@@ -87,6 +88,10 @@ class DepositController extends AbstractController
                         if ($action !== 'error') {
                             ($action === 'publish') ? $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/record/".$idDeposit) : $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/deposit/".$idDeposit);
                         }
+                        if ($action === 'publish'){
+                            $doiVersionForEpi = $getDepositInfo['doi'];
+                            $conceptIdForEpi = $getDepositInfo['conceptrecid'];
+                        }
                     } else {
                         $message = $zenodoClient->zenodoFormatedFormError($postMetadatas->getBody()->getContents());
                         $this->flashMessageError($message);
@@ -103,7 +108,9 @@ class DepositController extends AbstractController
                 'userInfo' => [
                     'lastname' => $userInfo['LASTNAME'],
                     'firstname' => $userInfo['FIRSTNAME'],
-                ]
+                ],
+                'doiVersionForEpi' => $doiVersionForEpi,
+                'conceptIdForEpi' => $conceptIdForEpi
             ]);
     }
 
@@ -118,6 +125,8 @@ class DepositController extends AbstractController
         if (!is_null($logRepo->isExistingDeposit($userInfo['username'],$id))){
             $response = $zenodoClient->getDepositById($id,$token);
             if ($response->getStatusCode() === 200) {
+                $doiVersionForEpi = null;
+                $conceptIdForEpi = null;
                 $depositInfo = json_decode($response->getBody()->getContents(),true);
                 $originalId = json_decode($response->getBody(), true)['record_id'];
                 $fileInfo = $zenodoClient->formatFilesInfoFromDeposit($depositInfo['files']);
@@ -190,9 +199,18 @@ class DepositController extends AbstractController
                     if ($action !== 'error') {
                         ($action === 'publish') ? $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/record/".$idDeposit) : $this->addFlash('success', $translator->trans('successSaveOrPublish')." : ".$this->getParameter('app.API_ZEN_URL')."/deposit/".$idDeposit);
                     }
+                    // we need to store in session because we reload the page so we lost this information
 
+                    if ($action === 'publish'){
+                        $requestStack->getSession()->set('edit-doi-tmp', $getDepositInfo['metadata']['doi']);
+                        $requestStack->getSession()->set('edit-ci-doi-tmp', $getDepositInfo['conceptrecid']);
+                    }
                     return $this->redirect($request->getUri());
                 } else {
+                    $doiVersionForEpi = $requestStack->getSession()->get('edit-doi-tmp');
+                    $conceptIdForEpi = $requestStack->getSession()->get('edit-ci-doi-tmp');
+                    $requestStack->getSession()->remove('edit-doi-tmp');
+                    $requestStack->getSession()->remove('edit-ci-doi-tmp');
                     return $this->renderForm('deposit/edit.html.twig', [
                         'controller_name' => 'DepositController',
                         'form' => $form,
@@ -202,7 +220,9 @@ class DepositController extends AbstractController
                         'userInfo' => [
                             'lastname' => $userInfo['LASTNAME'],
                             'firstname' => $userInfo['FIRSTNAME'],
-                        ]
+                        ],
+                        'doiVersionForEpi'=> $doiVersionForEpi,
+                        'conceptIdForEpi' => $conceptIdForEpi
                     ]);
                 }
             } else {
@@ -314,4 +334,33 @@ class DepositController extends AbstractController
             $this->addFlash('error',$value);
         }
     }
+
+    public function episcienceLink(Request $request, EpisciencesClient $episciencesClient,Security $security, TranslatorInterface $translator){
+
+        $userInfo = $security->getToken()->getAttributes();
+        if (empty($request->query->get('doi'))||empty($request->query->get('ci'))){
+            return $this->render('zenodoexception/error.html.twig',[
+                'statusCode' => '404',
+                'message' => $translator->trans('doiNotFound'),
+                'userInfo' => [
+                    'lastname' => $userInfo['LASTNAME'],
+                    'firstname' => $userInfo['FIRSTNAME'],
+                ]
+            ]);
+        }
+        $form = $this->createForm(EpisciencesFormType::class,null,[
+            'journals'=>$episciencesClient->formatJournalsForForm(),
+            'doi'=>$request->query->get('doi'),
+            'ci'=>$request->query->get('ci'),
+            'method'=> 'POST',
+        ]);
+        return $this->renderForm('deposit/linkepi.html.twig',[
+            'form' => $form,
+            'userInfo' => [
+                'lastname' => $userInfo['LASTNAME'],
+                'firstname' => $userInfo['FIRSTNAME'],
+            ],
+            'doi' => $request->query->get('doi')
+        ]);
+   }
 }

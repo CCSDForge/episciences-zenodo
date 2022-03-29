@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ 'Link to episcience'|trans }}{% endblock %}
+{% block body %}
+    {% include './navbar/navbar.html.twig' %}
+    <style>
+        .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+        .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    </style>
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    <div class="example-wrapper center-content-v-h">
+        <h3 class="text-center mb-3">{{ 'doiOfDep'|trans}} : {{ doi }}</h3>
+        <div class="text-center">{{ 'descRedirectEpi'|trans }}</div>
+        <br>
+        {{ form_start(form,{'attr': {'id': 'form-epi-link'}}) }}
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

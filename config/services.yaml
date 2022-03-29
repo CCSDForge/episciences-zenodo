@@ -6,6 +6,7 @@
 parameters:
     app.SBX_TOKEN: '%env(APP_SBX_TOKEN)%'
     app.API_ZEN_URL: '%env(APP_API_ZEN_URL)%'
+    app.APP_API_EPI_URL: '%env(APP_API_EPI_URL)%'
     deposit_upload_directory: '%kernel.project_dir%/var/tmp'
     cas_login_target: '%env(string:CAS_LOGIN_TARGET)%'
     cas_logout_target: '%env(string:CAS_LOGOUT_TARGET)%'
@@ -27,7 +28,9 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         bind:
-            $apiZenUrl: '%app.API_ZEN_URL%' # inject variable to all service
+            # inject variable to all service
+            $apiZenUrl: '%app.API_ZEN_URL%'
+            $apiEpiUrl: '%app.APP_API_EPI_URL%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

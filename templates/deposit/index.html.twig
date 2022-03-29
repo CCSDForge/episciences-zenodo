@@ -18,6 +18,11 @@
                 {{ message }}
             </div>
         {% endfor %}
+        {% if doiVersionForEpi is not null %}
+            <div class="alert alert-success">
+                <a href="{{ path('link_episciences',{ doi: doiVersionForEpi,ci: conceptIdForEpi   }) }}">Link Deposit to Episciences</a>.
+            </div>
+        {% endif %}
         <h1 class="text-center">{{ 'Create deposit'|trans }}</h1>
         {{ form_start(form) }}
         {# because from label unwanted from collection#}
@@ -60,7 +65,3 @@
 
     </div>
 {% endblock %}
-
-
-
-

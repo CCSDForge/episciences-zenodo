@@ -21,3 +21,11 @@ createDeposit: Create a deposit
 nameDep: Name of deposits
 LastUpdate: Last update
 blockDeposit: You cannot access deposits created outside the application
+gotoEpisciences: Go to episciences
+textModalEpi: If you wish to go further and publish the article in an Episciences journal, you can do so by selecting the desired journal, then clicking on the redirect button, you will be redirected to the appropriate form.
+goFurtherEpi: Going further with Episciences?
+journals: Epi-journals
+descRedirectEpi: Choose your journal below, you will be redirected to the Episciences website to submit your article
+doiOfDep: DOI of the deposit
+doiNotFound: DOI not found
+clickhere: Click here

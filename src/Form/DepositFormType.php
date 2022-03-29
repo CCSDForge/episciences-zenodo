@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Service\EpisciencesClient;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -39,7 +40,6 @@ class DepositFormType extends AbstractType
                 'expanded' => true,
 
             ])
-            //condition pour publication type
             ->add('publication_type',ChoiceType::class, [
                 'choices' => [
                     'preprint' => 'preprint',
