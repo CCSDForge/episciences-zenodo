@@ -352,6 +352,7 @@ class DepositController extends AbstractController
             'journals'=>$episciencesClient->formatJournalsForForm(),
             'doi'=>$request->query->get('doi'),
             'ci'=>$request->query->get('ci'),
+            'uid'=> $userInfo['UID'],
             'method'=> 'POST',
         ]);
         return $this->renderForm('deposit/linkepi.html.twig',[
