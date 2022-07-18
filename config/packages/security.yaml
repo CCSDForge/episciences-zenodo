@@ -39,3 +39,4 @@ security:
          - { path: ^/deposit, roles: ROLE_USER }
          - { path: ^/oauthlogin, roles: ROLE_USER }
          - { path: ^/_error, roles: [ROLE_ANO,ROLE_USER] }
+         - { path: ^/newversionfromepisciences, roles: [ROLE_USER] }

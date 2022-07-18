@@ -162,6 +162,24 @@ class ZenodoClient
         }
     }
 
+    public function getRecordByConceptId($conceptId,$token){
+        $client =  new Client();
+        try {
+            return $client->request('GET',$this->apiZenUrl."/api/records/",[
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+                'query' => [
+                    'access_token'=> $token,
+                    'q'=>'conceptdoi:'."\"$conceptId\""
+                ],
+            ]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $e->getResponse();
+        }
+    }
+
+
     public function formatFilesInfoFromDeposit($depositInfoFiles): array {
         $fileInfo = array();
         if (!empty($depositInfoFiles)) {
@@ -266,6 +284,17 @@ class ZenodoClient
         }
         return $error;
     }
+
+    public function getNewVersionFromRecordResponseApi($records){
+        $decodedRec = json_decode($records, true, 512, JSON_THROW_ON_ERROR);
+        if (!empty($decodedRec['hits'])){
+            if (!empty($decodedRec['hits']['hits'])) {
+                return $decodedRec['hits']['hits'][0]['id']; // get the id which is the latest id of the deposit published
+            }
+        }
+        return "";
+    }
+
 
 
 }

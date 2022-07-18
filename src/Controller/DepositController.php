@@ -30,12 +30,53 @@ class DepositController extends AbstractController
 
     public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, EpisciencesClient $episciencesClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator): Response
     {
+        //check if user came from specific journals
+        if ($request->query->has('epi-rvcode')){
+            $requestStack->getSession()->set('epi-rvcode',$request->query->get('epi-rvcode'));
+        }
         // token from CAS
         $userInfo = $security->getToken()->getAttributes();
+        $oauthSession = $requestStack->getSession()->get('access_token',[]);
+        if (empty($oauthSession)){
+            return $this->redirectToRoute('oauth_login');
+        }
+        $oauthClient->checkTokenValidity();
+        // check if request from episcience case of new version so we need to get zenodo deposit before and redirect to edition form
+        //we check if we have the info from episciences and the id of the new version
+        // in this case it means that he arrived on the page of the new version from episciences
+        // but that he did something else before the publication for example creation of a new repository
+        if ($requestStack->getSession()->has('epi-docid') && $requestStack->getSession()->has('epi-cdoi') && $requestStack->getSession()->has('epi-rvcode') && !($requestStack->getSession()->has('epi-tmp-new-version'))) {
+            $oauthSession = $requestStack->getSession()->get('access_token',[]);
+            if (empty($oauthSession)){
+                return $this->redirectToRoute('oauth_login');
+            }
+            $oauthClient->checkTokenValidity();
+            $token = $oauthSession->getToken();
+            $records = $zenodoClient->getRecordByConceptId($requestStack->getSession()->get('epi-cdoi'),$token)->getBody()->getContents();
+            $lastIdByDeposit = $zenodoClient->getNewVersionFromRecordResponseApi($records);
+            if ($lastIdByDeposit !== '') {
+                $newVersion = $zenodoClient->newVersionDeposit($token,$lastIdByDeposit);
+                if ($newVersion['status'] === 201) {
+                    $logInfo = array(
+                        'username' => $userInfo['username'],
+                        'doi_deposit_fix' => $newVersion['content']['conceptrecid'],
+                        'doi_deposit_version' => $newVersion['idNewVersion'],
+                        'date'=> new \DateTime(),
+                        'action' => 'new_version',
+                        'zen_title'=> $newVersion['content']['metadata']['title']
+                    );
+                    $sessionForEpi =  $requestStack->getSession();
+                    $sessionForEpi->set("epi-tmp-new-version", $newVersion['idNewVersion']); // new version put in tmp for notice message and in the case of user go to an other deposit without publish the new version created here
+                    $logRepo->addLog($logInfo);
+                    return $this->redirectToRoute('edit_deposit', ['id' => $newVersion['idNewVersion']]);
+                }
+            }
+        }
         $form = $this->createForm(DepositFormType::class);
         $form->handleRequest($request);
         $doiVersionForEpi = null;
         $conceptIdForEpi = null;
+
         if ($form->isSubmitted() && $form->isValid()) {
             $oauthSession = $requestStack->getSession()->get('access_token',[]);
             if (empty($oauthSession)){
@@ -123,6 +164,11 @@ class DepositController extends AbstractController
         $oauthClient->checkTokenValidity();
         $token = $oauthSession->getToken();
         if (!is_null($logRepo->isExistingDeposit($userInfo['username'],$id))){
+            //check if is from Episcience new version action
+            if ($requestStack->getSession()->has('epi-docid') && $requestStack->getSession()->has('epi-cdoi') && $requestStack->getSession()->has('epi-rvcode') && $requestStack->getSession()->has('epi-tmp-new-version') && ($requestStack->getSession()->get('epi-tmp-new-version') === $id)) {
+                $requestStack->getSession()->getFlashBag()->set('notice', []); // hack to clean flash message because notice can be displayed twice
+                $this->addFlash('notice', $translator->trans('finishNewVersForEpi'));
+            }
             $response = $zenodoClient->getDepositById($id,$token);
             if ($response->getStatusCode() === 200) {
                 $doiVersionForEpi = null;
@@ -204,6 +250,10 @@ class DepositController extends AbstractController
                     if ($action === 'publish'){
                         $requestStack->getSession()->set('edit-doi-tmp', $getDepositInfo['metadata']['doi']);
                         $requestStack->getSession()->set('edit-ci-doi-tmp', $getDepositInfo['conceptrecid']);
+                        if ($requestStack->getSession()->has('epi-docid') && $requestStack->getSession()->has('epi-cdoi') && $requestStack->getSession()->has('epi-rvcode') && $requestStack->getSession()->has('epi-tmp-new-version') && ($requestStack->getSession()->get('epi-tmp-new-version') === $id)) {
+                            // case of new version called by Episciences
+                            return $this->redirectToRoute("link_episciences",["doi"=>$requestStack->getSession()->get('edit-doi-tmp'),"ci"=>$requestStack->getSession()->get('edit-ci-doi-tmp')]);
+                        }
                     }
                     return $this->redirect($request->getUri());
                 } else {
@@ -335,7 +385,7 @@ class DepositController extends AbstractController
         }
     }
 
-    public function episcienceLink(Request $request, EpisciencesClient $episciencesClient,Security $security, TranslatorInterface $translator){
+    public function episcienceLink(Request $request, EpisciencesClient $episciencesClient,Security $security, TranslatorInterface $translator, RequestStack $requestStack){
 
         $userInfo = $security->getToken()->getAttributes();
         if (empty($request->query->get('doi'))||empty($request->query->get('ci'))){
@@ -348,13 +398,52 @@ class DepositController extends AbstractController
                 ]
             ]);
         }
-        $form = $this->createForm(EpisciencesFormType::class,null,[
-            'journals'=>$episciencesClient->formatJournalsForForm(),
+        $tmpArrayForm = [
             'doi'=>$request->query->get('doi'),
             'ci'=>$request->query->get('ci'),
             'uid'=> $userInfo['UID'],
             'method'=> 'POST',
-        ]);
+        ];
+        $checkDoiMatching = [];
+        preg_match("/(?<=zenodo.).*/",$tmpArrayForm['doi'],$checkDoiMatching);// check if we redirect to episcience directly or display form and let choose the user for the journal
+        //check episciences query new version
+        if ($requestStack->getSession()->has('epi-docid')
+            && $requestStack->getSession()->has('epi-cdoi')
+            && $requestStack->getSession()->has('epi-rvcode')
+            && $requestStack->getSession()->has('epi-tmp-new-version')
+            && ($requestStack->getSession()->get('epi-tmp-new-version') === $checkDoiMatching[0])) {
+
+            $tmpArrayForm['flagnewVerForEpi'] = '1';
+            $tmpArrayForm['journals'] = [ $requestStack->getSession()->get('epi-rvcode') =>  $requestStack->getSession()->get('epi-rvcode')];
+            $requestStack->getSession()->remove('epi-docid');
+            $requestStack->getSession()->remove('epi-cdoi');
+            $requestStack->getSession()->remove('epi-rvcode');
+            $requestStack->getSession()->remove('epi-tmp-new-version');
+            $requestStack->getSession()->getFlashBag()->clear(); // clear flashbag
+
+        }elseif ($requestStack->getSession()->has('epi-rvcode') &&
+            !(
+                $requestStack->getSession()->has('epi-docid') &&
+                $requestStack->getSession()->has('epi-cdoi') &&
+                $requestStack->getSession()->has('epi-tmp-new-version')
+            )){
+            //case user came on z-submit from specific journals
+            // we only have rvcode just for the redirect in the right journal
+            // optional check but more safe check if we don't have any other session things
+            $tmpArrayForm['journals'] = [ $requestStack->getSession()->get('epi-rvcode') =>  $requestStack->getSession()->get('epi-rvcode')];
+            $tmpArrayForm['flagnewVerForEpi'] = '1';// instant redirect to the journal which the user came from
+            $requestStack->getSession()->remove('epi-rvcode');
+            $requestStack->getSession()->getFlashBag()->clear(); // clear flashbag
+        }
+        else{
+            $tmpArrayForm['journals'] = $episciencesClient->formatJournalsForForm();
+            $tmpArrayForm['flagnewVerForEpi'] = '0';
+        }
+        $form = $this->createForm(EpisciencesFormType::class,null,$tmpArrayForm);
+
+        $requestStack->getSession()->remove('edit-ci-doi-tmp');
+        $requestStack->getSession()->remove('edit-doi-tmp');
+        
         return $this->renderForm('deposit/linkepi.html.twig',[
             'form' => $form,
             'userInfo' => [
@@ -363,5 +452,49 @@ class DepositController extends AbstractController
             ],
             'doi' => $request->query->get('doi')
         ]);
+   }
+   public function episciencesNewversion(Request $request, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator){
+       $userInfo = $security->getToken()->getAttributes();
+       $oauthSession = $requestStack->getSession()->get('access_token',[]);
+       if ($request->get('epi-docid') && $request->get('epi-cdoi') && $request->get('epi-rvcode') ) {
+           $sessionForEpi =  $requestStack->getSession();
+           $sessionForEpi->set("epi-docid",$request->get('epi-docid'));
+           $sessionForEpi->set("epi-cdoi",$request->get('epi-cdoi'));
+           $sessionForEpi->set("epi-rvcode",$request->get('epi-rvcode'));
+       }
+       if (empty($oauthSession)){
+           // check if request from episcience case of new version so we need to have the last publish zenodo deposit before
+           return $this->redirectToRoute('oauth_login');
+       } else {
+           $oauthClient->checkTokenValidity();
+           $token = $oauthSession->getToken();
+           $records = $zenodoClient->getRecordByConceptId($request->get('epi-cdoi'),$token)->getBody()->getContents();
+           $lastIdByDeposit = $zenodoClient->getNewVersionFromRecordResponseApi($records);
+           if ($lastIdByDeposit !== '') {
+               $newVersion = $zenodoClient->newVersionDeposit($token,$lastIdByDeposit);
+               if ($newVersion['status'] === 201) {
+                   $logInfo = array(
+                       'username' => $userInfo['username'],
+                       'doi_deposit_fix' => $newVersion['content']['conceptrecid'],
+                       'doi_deposit_version' => $newVersion['idNewVersion'],
+                       'date'=> new \DateTime(),
+                       'action' => 'new_version',
+                       'zen_title'=> $newVersion['content']['metadata']['title']
+                   );
+                   $logRepo->addLog($logInfo);
+                   $sessionForEpi =  $requestStack->getSession();
+                   $sessionForEpi->set("epi-tmp-new-version", $newVersion['idNewVersion']); // new version put in tmp for notice message and in the case of user go to an other deposit without publish the new version created here
+                   return $this->redirectToRoute('edit_deposit', ['id' => $newVersion['idNewVersion']]);
+               }
+           }
+           return $this->render('zenodoexception/error.html.twig',[
+               'statusCode' => '404',
+               'message' => $translator->trans('doiNotFound'),
+               'userInfo' => [
+                   'lastname' => $userInfo['LASTNAME'],
+                   'firstname' => $userInfo['FIRSTNAME'],
+               ]
+           ]);
+       }
    }
 }

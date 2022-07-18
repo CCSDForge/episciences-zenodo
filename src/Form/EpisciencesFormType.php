@@ -33,21 +33,35 @@ class EpisciencesFormType extends AbstractType
      */
     private $ci;
 
+    /**
+     * @var mixed
+     */
+    private $flagnewVerForEpi; //case of new version called by epi
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $this->journals = $options['journals'];
         $this->doi = $options['doi'];
         $this->uid = $options['uid'];
         $this->ci = $options['ci'];
-        $builder
-            ->add('episcienceslink_journals', ChoiceType::class, ['choices' => $options['journals'], 'label' => false,'placeholder' => 'Select journal'])
-            ->add('confirm', SubmitType::class, ['attr' => ['class' => 'btn btn-outline-success w-100 mb-3','id'=> 'submit-epi-link-btn']])
+        if (isset($options['flagnewVerForEpi']) && $options['flagnewVerForEpi'] === '1'){
+            $builder
+                ->add('episcienceslink_journals', ChoiceType::class, ['choices' => $options['journals'], 'label' => false]);
+        }else{
+            $builder
+                ->add('episcienceslink_journals', ChoiceType::class, ['choices' => $options['journals'], 'label' => false,'placeholder' => 'Select journal']);
+        }
+
+            $builder->add('confirm', SubmitType::class, ['attr' => ['class' => 'btn btn-outline-success w-100 mb-3','id'=> 'submit-epi-link-btn']])
             ->add('doi_show',HiddenType::class,[
                 'data'=>$this->doi,
             ])
             ->add('uid', HiddenType::class,['data'=> $this->uid])
             ->add('repoid',HiddenType::class,['attr'=> ['value'=>'4']]) // 4 because zenodo
             ->add('ci',HiddenType::class,['data'=>$this->ci]);
+        if (isset($options['flagnewVerForEpi'])){
+            $builder->add('flagnewVerForEpi',HiddenType::class,['data'=>$options['flagnewVerForEpi']]);
+        }
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -57,7 +71,8 @@ class EpisciencesFormType extends AbstractType
             'journals' => null,
             'doi'=> null,
             'ci' => null,
-            'uid' =>  null
+            'uid' =>  null,
+            'flagnewVerForEpi' => false
         ]);
     }
 }

@@ -41,3 +41,7 @@ list_deposit:
 link_episciences:
   path: /{_locale<en|fr>}/deposit/linkepisciences
   controller: App\Controller\DepositController::episcienceLink
+
+link_episciences_new_version:
+  path: /{_locale<en|fr>}/deposit/newversionfromepisciences
+  controller: App\Controller\DepositController::episciencesNewversion

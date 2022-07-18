@@ -56,3 +56,5 @@ Select journal: Sélectionner revue
 doiOfDep: DOI du dépôt
 doiNotFound: DOI non trouvé
 clickhere: Cliquez ici
+finishNewVersForEpi: Pour finaliser la nouvelle version, vous devez publier avec les nouveaux éléments, Attention assurez vous que les fichiers soit différents de la précédente version, sans cela Zenodo n'acceptera pas votre nouvelle publication.
+finalRedirection: Redirection vers Episciences

@@ -172,4 +172,15 @@ $(function () {
             $("#form-epi-link").prop("action", selectedJournal+"/submit");
         }
     });
+    // this case is for request from episciences for the new version
+    if ($('input#episciences_form_flagnewVerForEpi') !== undefined){
+        if ($('input#episciences_form_flagnewVerForEpi').val() === "1"){
+            let journalEpi = $("#episciences_form_episcienceslink_journals option:selected").val();
+            $("#form-epi-link").prop("action", "https://"+journalEpi+".episciences.org/submit");
+            $('body').addClass("d-none");
+            let message = $("#message-spinner").text();
+            $(`<div class="d-flex flex-column min-vh-100 justify-content-center align-items-center"><strong class="mb-2">${message}</strong><div class="spinner-grow text-info" role="status"></div></div>`).insertAfter('body');
+            $("#form-epi-link").submit();
+        }
+    }
 });

@@ -29,3 +29,5 @@ descRedirectEpi: Choose your journal below, you will be redirected to the Episci
 doiOfDep: DOI of the deposit
 doiNotFound: DOI not found
 clickhere: Click here
+finishNewVersForEpi: To finalize the new version, you have to publish with the new elements, please make sure that the files are different from the previous version, otherwise Zenodo will not accept your new publication.
+finalRedirection: Redirect to Episciences
