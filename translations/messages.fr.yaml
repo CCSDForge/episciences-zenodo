@@ -58,3 +58,7 @@ doiNotFound: DOI non trouvé
 clickhere: Cliquez ici
 finishNewVersForEpi: Pour finaliser la nouvelle version, vous devez publier avec les nouveaux éléments, Attention assurez vous que les fichiers soit différents de la précédente version, sans cela Zenodo n'acceptera pas votre nouvelle publication.
 finalRedirection: Redirection vers Episciences
+Conference paper: Papier de conférence
+Journal article: Article de revue
+Working paper: Document de travail
+Other: Autre

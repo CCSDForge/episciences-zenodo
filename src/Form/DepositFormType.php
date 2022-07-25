@@ -42,8 +42,24 @@ class DepositFormType extends AbstractType
             ])
             ->add('publication_type',ChoiceType::class, [
                 'choices' => [
-                    'preprint' => 'preprint',
-                    'book' => 'book',
+                    //'Annotation collection' => 'annotationcollection',
+                    //'Book' => 'book',
+                    //'Book section' => 'section',
+                    'Conference paper' => 'conferencepaper',
+                    //'Data management plan' => 'datamanagementplan',
+                    'Journal article' => 'article',
+                    //'Patent' => 'patent',
+                    'Preprint' => 'preprint',
+                    //'Project deliverable' => 'deliverable',
+                    //'Project milestone' => 'milestone',
+                    //'Proposal' => 'proposal',
+                    //'Report' => 'report',
+                    //'Software documentation' => 'softwaredocumentation',
+                    //'Taxonomic treatment' => 'taxonomictreatment',
+                    //'Technical note' => 'technicalnote',
+                    //'Thesis' => 'thesis',
+                    'Working paper' => 'workingpaper',
+                    'Other' => 'other'
                 ],
                 'expanded' => false,
 
