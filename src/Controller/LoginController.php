@@ -21,7 +21,6 @@ class LoginController extends AbstractController
         $target = urlencode($this->getParameter('cas_login_target'));
         $url = 'https://'
             . $this->getParameter('cas_host')
-            . $this->getParameter('cas_path')
             . '/login?service=';
 
 
