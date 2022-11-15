@@ -53,6 +53,7 @@
         "symfony/twig-bundle": "5.4.*",
         "symfony/validator": "5.4.*",
         "symfony/web-link": "5.4.*",
+        "symfony/web-profiler-bundle": "5.4.*",
         "symfony/webpack-encore-bundle": "^1.13",
         "symfony/yaml": "5.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
@@ -68,8 +69,7 @@
         "symfony/debug-bundle": "5.4.*",
         "symfony/maker-bundle": "^1.0",
         "symfony/phpunit-bridge": "^5.3",
-        "symfony/stopwatch": "5.4.*",
-        "symfony/web-profiler-bundle": "5.4.*"
+        "symfony/stopwatch": "5.4.*"
     },
     "config": {
         "optimize-autoloader": true,

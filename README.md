@@ -31,13 +31,22 @@ Dependencies
 If you want update libraries you can update with composer install/update
 ```
 
+First install 
+```
+composer install
+
+Migration :
+
+php bin/console doctrine:migrations:migrate
+
+```
+
+
 Migration
 ```
 Change in .env the database url 
 
 Example : DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/db_name?serverVersion=5.7"
-
-php bin/console doctrine:migrations:migrate
 
 To upgrade to the latest migration
 
