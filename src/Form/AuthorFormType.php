@@ -16,7 +16,7 @@ class AuthorFormType extends AbstractType
         $builder
             ->add('creator',TextType::class,['attr' => ['class'=>'col-4','placeholder' => 'Family name, given names']])
             ->add('affiliation',TextType::class, ['attr' => ['class'=>'col-4'], 'required' => false])
-            ->add('orcid',TextType::class, ['attr' => ['class'=>'col-4','empty_data' => '',],'required' => false]);
+            ->add('orcid',TextType::class, ['attr' => ['class'=>'col-4','empty_data' => '',],'required' => false,'label'=>'ORCID','attr' => ['placeholder'=>'0000-0002-1825-002X']]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

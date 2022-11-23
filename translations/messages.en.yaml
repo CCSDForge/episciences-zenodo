@@ -1,13 +1,13 @@
-publishNewVersError: If you want to put a files from a published deposit you need to create new version of the deposit
+publishNewVersError: If you want to put a file from a published submission you need to create new version of the submission
 warningConfirm: Do you really want
 deleteResource: delete the resource
 book: Book
 preprint: Preprint
-editDeposit: Edit of deposit
+editDeposit: Edit of submission
 zenlinkOauth: Link your Zenodo account to the application
 accessDeniedClientDenied: In order to be authorized to perform action on Zenodo via application, you need to accept
 somethingWrong: Something went wrong
-depositNotFound: Deposit not found, be sure you have the right informations
+depositNotFound: Submission not found, be sure you have the right informations
 error: Error
 deleteAuthor: Delete this author
 Creator: Creator/Author
@@ -16,18 +16,26 @@ zenodoDisconnected: You're disconnected from Zenodo please follow the link to re
 casUnauthorized: You must be authentified to perform this action
 fileNotFound: File not found
 successSaveOrPublish: Successfully completed! Find all the information here
-myDeposit: List of my deposits
-createDeposit: Create a deposit
-nameDep: Name of deposits
+noListDeposit: You don't have any saved or published submission via the platform
+myDeposit: List of my submissions
+createDeposit: Create a submission
+nameDep: Name of submissions
 LastUpdate: Last update
-blockDeposit: You cannot access deposits created outside the application
+blockDeposit: You cannot access submissions created outside the application
 gotoEpisciences: Go to episciences
 textModalEpi: If you wish to go further and publish the article in an Episciences journal, you can do so by selecting the desired journal, then clicking on the redirect button, you will be redirected to the appropriate form.
 goFurtherEpi: Going further with Episciences?
 journals: Epi-journals
 descRedirectEpi: Choose your journal below, you will be redirected to the Episciences website to submit your article
-doiOfDep: DOI of the deposit
+doiOfDep: DOI of the submissions
 doiNotFound: DOI not found
 clickhere: Click here
 finishNewVersForEpi: To finalize the new version, you have to publish with the new elements, please make sure that the files are different from the previous version, otherwise Zenodo will not accept your new publication.
 finalRedirection: Redirect to Episciences
+AccessWithNoConnectionWithZenodo: You must link your Zenodo account to our application to access this page.
+Deposit file: Submission file
+zenHomeTextFirst: Welcome to the gateway between Episciences and Zenodo
+zenHomeTextSecond: On this gateway, you can upload your paper to Zenodo and then submit it directly to the Episciences journal of your choice.
+zenHomeTextSecondRvcodeExist: On this gateway, you can upload your paper to Zenodo and then submit it directly to
+casLoginBtn: Access the gateway between Episciences and Zenodo.
+linkEpiText: Link the submission to

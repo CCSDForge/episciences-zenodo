@@ -15,14 +15,19 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OauthLoginController extends AbstractController
 {
-    public function oauthindex(Security $security)
+    public function oauthindex(Security $security,RequestStack $requestStack)
     {
         $userInfo = $security->getToken()->getAttributes();
+        $rvcodeTxt = '';
+        if($requestStack->getSession()->has('epi-rvcode')){
+            $rvcodeTxt = $requestStack->getSession()->get('epi-rvcode');
+        }
         return $this->render('login/indexoauth.html.twig',[
             'userInfo' => [
                 'lastname' => $userInfo['LASTNAME'],
                 'firstname' => $userInfo['FIRSTNAME'],
-            ]
+            ],
+            'rvcodeTxt' => $rvcodeTxt
         ]);
     }
 

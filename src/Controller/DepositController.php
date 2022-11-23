@@ -38,6 +38,7 @@ class DepositController extends AbstractController
         $userInfo = $security->getToken()->getAttributes();
         $oauthSession = $requestStack->getSession()->get('access_token',[]);
         if (empty($oauthSession)){
+            $this->addFlash('error', $translator->trans('AccessWithNoConnectionWithZenodo'));
             return $this->redirectToRoute('oauth_login');
         }
         $oauthClient->checkTokenValidity();
@@ -178,7 +179,7 @@ class DepositController extends AbstractController
                 $fileInfo = $zenodoClient->formatFilesInfoFromDeposit($depositInfo['files']);
                 $reformatDepositInfo = $zenodoClient->formatMetadatasFromDeposit($depositInfo);
                 $statusDeposit = $depositInfo['submitted'];
-                $form = $this->createForm(DepositFormType::class, $reformatDepositInfo);
+                $form = $this->createForm(DepositFormType::class, $reformatDepositInfo, ['publicationDate'=>$reformatDepositInfo['date']]);
                 $form->handleRequest($request);
                 if ($form->isSubmitted() && $form->isValid()) {
                     $oauthSession = $requestStack->getSession()->get('access_token',[]);
@@ -367,9 +368,13 @@ class DepositController extends AbstractController
         }
     }
 
-    public function listDeposit(Request $request, Security $security, LogUserActionRepository $logRepo){
+    public function listDeposit(Request $request, Security $security,RequestStack $requestStack,TranslatorInterface $translator, LogUserActionRepository $logRepo){
         $userInfo = $security->getToken()->getAttributes();
         $pagination = $logRepo->getListDepositByUser($userInfo['username'],$request);
+        if ($pagination->count() === 0){
+            $requestStack->getSession()->getFlashBag()->set('notice', []); //hack to clean cache notice
+            $this->addFlash('notice', $translator->trans('noListDeposit'));
+        }
         return $this->render('home/list.html.twig',[
             'userInfo' => [
                 'lastname' => $userInfo['LASTNAME'],

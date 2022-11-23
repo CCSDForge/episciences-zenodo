@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}{{ 'Create deposit'|trans }}{% endblock %}
+{% block title %}{{ 'Create submissions'|trans }}{% endblock %}
 {% block body %}
     {% include './navbar/navbar.html.twig' %}
     <style>
@@ -20,10 +20,10 @@
         {% endfor %}
         {% if doiVersionForEpi is not null %}
             <div class="alert alert-success">
-                <a href="{{ path('link_episciences',{ doi: doiVersionForEpi,ci: conceptIdForEpi   }) }}">Link Deposit to Episciences</a>.
+                <a href="{{ path('link_episciences',{ doi: doiVersionForEpi,ci: conceptIdForEpi   }) }}">{{'linkEpiText'|trans }}</a>.
             </div>
         {% endif %}
-        <h1 class="text-center">{{ 'Create deposit'|trans }}</h1>
+        <h1 class="text-center">{{ 'Create submission'|trans }}</h1>
         {{ form_start(form) }}
         {# because from label unwanted from collection#}
         {{ form_row(form._token) }}

@@ -21,8 +21,16 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 
 class DepositFormType extends AbstractType
 {
+    /**
+     * @var mixed
+     */
+    private $publicationDate;
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        if (isset($options['publicationDate'])){
+            $this->publicationDate = $options['publicationDate'];
+        }
         $builder
             ->add('depositFile',FileType::class,[
                 'required' => false,
@@ -68,9 +76,10 @@ class DepositFormType extends AbstractType
                 'attr' => ['class' => 'tinymce','rows' => 10],
             ])
             ->add('date', DateType::class, [
-                'widget' => 'choice',
-                'input'  => 'datetime',
-                'choice_translation_domain' => true
+                'widget' => 'single_text',
+                'choice_translation_domain' => true,
+                'label' => 'Publication date',
+                'data' => $this->publicationDate
             ])
             ->add('author',CollectionType::class,[
                 'entry_type' => AuthorFormType::class,
@@ -88,7 +97,7 @@ class DepositFormType extends AbstractType
                 ],
 
             ])
-            ->add('save', SubmitType::class, ['attr' => ['class' => 'btn btn-outline-success w-100 mb-3 mt-3']])
+            ->add('save', SubmitType::class, ['attr' => ['class' => 'btn btn-outline-success w-100 mb-3 mt-3'],'label' => 'Save as draft'])
             ->add('save_publish', SubmitType::class, ['attr' => ['class' => 'btn btn-outline-success w-100 mb-3 mt-3'], 'label' => 'Save and Publish'])
             ->add('new_version', SubmitType::class,  ['attr' => ['class' => 'btn btn-outline-success w-100 mb-3 mt-3'], 'label' => 'New Version'])
         ;
@@ -98,6 +107,7 @@ class DepositFormType extends AbstractType
     {
         $resolver->setDefaults([
             // Configure your form options here
+            'publicationDate' => new \DateTime()
         ]);
     }
 }

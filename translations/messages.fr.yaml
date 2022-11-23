@@ -1,7 +1,7 @@
 Welcome: Bienvenue
 Login: Connexion
 Deposit file: Fichier(s) du dépôt
-Create deposit: Création de dépôt
+Create submissions: Création de dépôt
 editDeposit: Edition de dépôt
 Basic information: Informations générales
 Title: Titre
@@ -10,6 +10,7 @@ Upload type: Type de dépôt
 Dataset: Ensemble de données
 book: Livre
 Save: Sauvegarder
+Save as draft: Sauvegarder comme brouillon
 Save and Publish: Sauvegarder et Publier
 Publication type: Type de publication
 Add another author: Ajouter un nouvel auteur
@@ -41,6 +42,7 @@ zenodoDisconnected: Vous êtes déconnecté de Zenodo, veuillez suivre le lien p
 casUnauthorized:  Vous devez être authentifié pour effectuer cette action.
 fileNotFound: Fichier non trouvé
 successSaveOrPublish: Terminé avec succès ! Retrouvez toutes les informations ici
+noListDeposit: Vous n'avez pas encore créé ou publié de dépôt via notre plateforme
 myDeposit: Liste de mes dépôts
 createDeposit: Créer un dépot
 nameDep: Nom de dépôts
@@ -62,3 +64,10 @@ Conference paper: Papier de conférence
 Journal article: Article de revue
 Working paper: Document de travail
 Other: Autre
+AccessWithNoConnectionWithZenodo: Vous devez lier votre compte Zenodo à notre application pour accéder à cette page.
+Publication date: Date de publication
+zenHomeTextFirst: Bienvenue sur la passerelle entre Episciences et Zenodo
+zenHomeTextSecond: Sur cette passerelle, vous pouvez déposer votre article sur Zenodo puis le soumettre directement dans la revue Episciences de votre choix.
+zenHomeTextSecondRvcodeExist: Sur cette passerelle, vous pouvez déposer votre article sur Zenodo puis le soumettre directement dans la revue
+casLoginBtn: Accéder à la passerelle entre Episciences et Zenodo.
+linkEpiText: Lier la soumission à Episciences

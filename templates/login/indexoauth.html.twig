@@ -11,6 +11,15 @@
     {% endfor %}
     <div class="d-flex align-items-center justify-content-center vh-100 flex-column">
         <h1 class=" font-weight-normal text-center"><img src="https://about.zenodo.org/static/img/logos/zenodo-gradient-round.svg" alt="zenodo-logo" width="80%" height="auto"> </h1>
+        <p class="text-center w-50">
+            {{ 'zenHomeTextFirst'|trans }}
+            <br>
+            {% if rvcodeTxt is not same as('') %}
+                {{ 'zenHomeTextSecondRvcodeExist'|trans }} {{rvcodeTxt}}.
+            {% else %}
+                {{ 'zenHomeTextSecond'|trans }}
+            {% endif %}
+        </p>
         <a class="btn btn-outline-info btn-lg d-block w-50" href="{{ path('oauth_zenodo_authorization') }}">{{ 'zenlinkOauth'|trans }}</a>
     </div>
 {% endblock %}
