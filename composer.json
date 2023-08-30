@@ -1,6 +1,8 @@
 {
+    "name": "episciences/zsubmit",
+    "description": "An Episciences to Zenodo Proxy for handling submissions from Zenodo",
     "type": "project",
-    "license": "proprietary",
+    "license": "GNU GENERAL PUBLIC LICENSE Version 3",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
@@ -61,10 +63,10 @@
         "symfony/web-profiler-bundle": "5.4.*",
         "symfony/webpack-encore-bundle": "^1.13",
         "symfony/yaml": "5.4.*",
-        "twig/extra-bundle": "^2.12|^3.0",
+        "twig/extra-bundle": "^3.0",
         "twig/intl-extra": "^3.3",
         "twig/string-extra": "^3.3",
-        "twig/twig": "^2.12|^3.0",
+        "twig/twig": "^3.0",
         "symfony/browser-kit": "5.4.*",
         "symfony/css-selector": "5.4.*",
         "symfony/maker-bundle": "^1.0",
@@ -72,7 +74,6 @@
         "symfony/debug-bundle": "5.4.*"
     },
     "require-dev": {
-        "roave/security-advisories": "dev-latest",
         "phpunit/phpunit": "^9.5",
         "symfony/phpunit-bridge": "^5.3"
 
