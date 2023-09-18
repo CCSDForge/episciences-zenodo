@@ -19,7 +19,7 @@ class LoginController extends AbstractController
     public function loginAction(Request $request) : RedirectResponse
     {
         $target = urlencode($this->getParameter('cas_login_target'));
-        $url = 'https://'
+        $url = 'http://'
             . $this->getParameter('cas_host')
             . '/login?service=';
 
