@@ -7,6 +7,7 @@ parameters:
     app.SBX_TOKEN: '%env(APP_SBX_TOKEN)%'
     app.API_ZEN_URL: '%env(APP_API_ZEN_URL)%'
     app.APP_API_EPI_URL: '%env(APP_API_EPI_URL)%'
+    oauth_redirect_secure: '%env(string:APP_REDIRECT_OAUTH_SECURE)%'
     deposit_upload_directory: '%kernel.project_dir%/var/tmp'
     cas_login_target: '%env(string:CAS_LOGIN_TARGET)%'
     cas_logout_target: '%env(string:CAS_LOGOUT_TARGET)%'

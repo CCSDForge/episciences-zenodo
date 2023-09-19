@@ -40,7 +40,7 @@ class OauthLoginController extends AbstractController
             ->getClient('zenodo_main') // key used in config/packages/knpu_oauth2_client.yaml
             ->redirect([
                 'deposit:write', 'deposit:actions','user:email' // the scopes you want to access
-            ]);
+            ],['redirect_uri'=>$this->getParameter('oauth_redirect_secure')]);
     }
 
     public function connectCheckAction(Request $request, ClientRegistry $clientRegistry, RequestStack $requestStack,LoggerInterface $logger, TranslatorInterface $translator)
