@@ -50,25 +50,25 @@ class OauthLoginController extends AbstractController
         // ** if you want to *authenticate* the user, then
         // leave this method blank and create a Guard authenticator
         // (read below)
-        $logger->debug('page check');
-        $logger->debug("Client Oauth",[$clientRegistry->getClient('zenodo_main')]);
+        $logger->debug('EPILOG page check');
+        $logger->debug("EPILOG Client Oauth",[$clientRegistry->getClient('zenodo_main')]);
         $client = $clientRegistry->getClient('zenodo_main');
-        $logger->debug('try get session',[$requestStack->getSession()]);
+        $logger->debug('EPILOG try get session',[$requestStack->getSession()]);
         try {
-            $logger->info("Enter in try to push session oauth in app");
+            $logger->info("EPILOG Enter in try to push session oauth in app");
             // the exact class depends on which provider you're using
 
             // Try to get an access token using the authorization code grant.
             // Fetch and store the AccessToken
             $session = $requestStack->getSession();
-            $logger->debug('try get session',[$session->all()]);
+            $logger->debug('EPILOG try get session',[$session->all()]);
             if (isset($_GET['error'])) {
-                $logger->debug('GET error',[$_GET['error']]);
+                $logger->debug('EPILOG GET error',[$_GET['error']]);
                 if (!is_null($session->get('access_token'))){
                     $session->remove('access_token');
 
                 }
-                $logger->debug('GET error',[$session->get("knpu.oauth2_client_state")]);
+                $logger->debug('EPILOG state',[$session->get("knpu.oauth2_client_state")]);
                 $session->remove('knpu.oauth2_client_state');
                 if ($_GET['error'] === 'access_denied') {
                     $this->addFlash('error',$translator->trans('accessDeniedClientDenied'));
@@ -77,28 +77,40 @@ class OauthLoginController extends AbstractController
                 }
                 return $this->redirectToRoute('oauth_login');
             }
-            $logger->debug('state knpu before insert session',[$session->get("knpu.oauth2_client_state")]);
-            $accessToken = $client->getAccessToken();
-            $logger->debug('try get accessToken',[$accessToken]);
+            $logger->debug('EPILOG state knpu before insert session',[$session->get("knpu.oauth2_client_state")]);
+            $logger->debug('EPILOG excepted state knpu before insert session',[$requestStack->getCurrentRequest()->get('state')]);
+            $logger->debug('EPILOG CONDITION',[$requestStack->getCurrentRequest()->get('state')]);
+            $logger->debug('EPILOG get oauth code',[$requestStack->getCurrentRequest()->get('code')]);
+            $logger->debug('EPILOG REQUEST HOST', [$requestStack->getCurrentRequest()->getHttpHost()]);
+            $logger->debug('EPILOG REQUEST URI', [$requestStack->getCurrentRequest()->getRequestUri()]);
+            $logger->debug('EPILOG REQUEST HOST', [$requestStack->getCurrentRequest()->getHost()]);
+            $logger->debug('EPILOG REQUEST QUERY STRING', [$requestStack->getCurrentRequest()->getQueryString()]);
+            try {
+                $accessToken = $client->getAccessToken();
+            }catch (\Exception $e) {
+                $accessToken = $e->getMessage();
+            }
+            $logger->debug('EPILOG CATCH MESSAGE', [$accessToken]);
+            $logger->debug('EPILOG try get accessToken',[$accessToken]);
             $session->set('access_token', $accessToken);
 
             // Load the access token from the session, and refresh if required
             $accessToken = $session->get('access_token');
-            $logger->debug('session',[$session]);
-            $logger->debug('try get accessToken in session',[$accessToken]);
-            $logger->debug('Is expired : ',[$accessToken->hasExpired()]);
+            $logger->debug('EPILOG session',[$session]);
+            $logger->debug('EPILOG try get accessToken in session',[$accessToken]);
+            $logger->debug('EPILOG Is expired : ',[$accessToken->hasExpired()]);
             if ($accessToken->hasExpired()) {
                 $accessToken = $client->refreshAccessToken($accessToken->getRefreshToken());
 
                 // Update the stored access token for next time
                 $session->set('access_token', $accessToken);
             }
-            $logger->debug('after all process',[$session->get("knpu.oauth2_client_state")]);
-            $logger->debug('session oauth : ',[$session->get('access_token')]);
+            $logger->debug('EPILOG after all process',[$session->get("knpu.oauth2_client_state")]);
+            $logger->debug('EPILOG session oauth : ',[$session->get('access_token')]);
             return $this->redirectToRoute('create_deposit');
 
         } catch (IdentityProviderException $e) {
-            $logger->debug('enter in catch',[$e->getTrace()]);
+            $logger->debug('EPILOG enter in catch',[$e->getTrace()]);
             $logger->error($e->getMessage(),['context'=>'oauth_connection_zenodo_app']);
 
             $this->addFlash('error','Something wrong happened');
