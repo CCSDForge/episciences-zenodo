@@ -86,7 +86,10 @@ class OauthLoginController extends AbstractController
             $logger->debug('EPILOG REQUEST HOST', [$requestStack->getCurrentRequest()->getHost()]);
             $logger->debug('EPILOG REQUEST QUERY STRING', [$requestStack->getCurrentRequest()->getQueryString()]);
             try {
-                $accessToken = $client->getAccessToken();
+                $accessToken = $client->getAccessToken(['scope' => "deposit:write', 'deposit:actions','user:email",
+                    'state'=>$requestStack->getCurrentRequest()->get('state'),
+                    'code' => $requestStack->getCurrentRequest()->get('code')]);
+
             }catch (\Exception $e) {
                 $accessToken = $e->getMessage();
             }
