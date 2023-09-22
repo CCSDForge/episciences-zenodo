@@ -34,14 +34,15 @@ class OauthLoginController extends AbstractController
     /**
      * @Route("/oauthzenodo", name="oauth_zenodo_authorization")
      */
-    public function oauthZenodo(Request $request , ClientRegistry $clientRegistry,LoggerInterface $logger)
+    public function oauthZenodo(RequestStack $requestStack,Request $request , ClientRegistry $clientRegistry,LoggerInterface $logger)
     {
         $logger->debug('page before connect oauth');
         $logger->debug("Client",[$clientRegistry->getClient('zenodo_main')]);
+        $logger->debug('EPILOG protocol',[$requestStack->getCurrentRequest()]);
         return $clientRegistry
             ->getClient('zenodo_main') // key used in config/packages/knpu_oauth2_client.yaml
             ->redirect([
-                'deposit:write', 'deposit:actions','user:email' // the scopes you want to access
+                'user:email' // the scopes you want to access
             ],['redirect_uri'=>$this->getParameter('oauth_redirect_secure')]);
     }
 
@@ -80,6 +81,7 @@ class OauthLoginController extends AbstractController
             $logger->debug('EPILOG state knpu before insert session',[$session->get("knpu.oauth2_client_state")]);
             $logger->debug('EPILOG excepted state knpu before insert session',[$requestStack->getCurrentRequest()->get('state')]);
             $logger->debug('EPILOG CONDITION',[$requestStack->getCurrentRequest()->get('state')]);
+            $logger->debug('EPILOG protocol',[$requestStack->getCurrentRequest()->getProtocolVersion()]);
             $logger->debug('EPILOG get oauth code',[$requestStack->getCurrentRequest()->get('code')]);
             $logger->debug('EPILOG REQUEST HOST', [$requestStack->getCurrentRequest()->getHttpHost()]);
             $logger->debug('EPILOG REQUEST URI', [$requestStack->getCurrentRequest()->getRequestUri()]);
