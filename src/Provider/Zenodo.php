@@ -55,7 +55,7 @@ class Zenodo extends AbstractProvider
      */
     protected function getDefaultScopes()
     {
-        return ["user:email"];
+        return ["deposit:write","deposit:actions","user:email"];
     }
 
     /**

@@ -40,3 +40,4 @@ security:
          - { path: ^/oauthlogin, roles: ROLE_USER }
          - { path: ^/_error, roles: [ROLE_ANO,ROLE_USER] }
          - { path: ^/newversionfromepisciences, roles: [ROLE_USER] }
+         - { path:  ^/(en|fr)/connect/zenodo/check, requires_channel: https }

@@ -42,6 +42,8 @@ class OauthLoginController extends AbstractController
         return $clientRegistry
             ->getClient('zenodo_main') // key used in config/packages/knpu_oauth2_client.yaml
             ->redirect([
+                'deposit:actions',
+                'deposit:write',
                 'user:email' // the scopes you want to access
             ],['redirect_uri'=>$this->getParameter('oauth_redirect_secure')]);
     }
@@ -67,7 +69,6 @@ class OauthLoginController extends AbstractController
                 $logger->debug('EPILOG GET error',[$_GET['error']]);
                 if (!is_null($session->get('access_token'))){
                     $session->remove('access_token');
-
                 }
                 $logger->debug('EPILOG state',[$session->get("knpu.oauth2_client_state")]);
                 $session->remove('knpu.oauth2_client_state');
@@ -106,8 +107,7 @@ class OauthLoginController extends AbstractController
             $logger->debug('EPILOG try get accessToken in session',[$accessToken]);
             $logger->debug('EPILOG Is expired : ',[$accessToken->hasExpired()]);
             if ($accessToken->hasExpired()) {
-                $accessToken = $client->refreshAccessToken($accessToken->getRefreshToken());
-
+                $accessToken = $client->refreshAccessToken($accessToken->getRefreshToken(),[]);
                 // Update the stored access token for next time
                 $session->set('access_token', $accessToken);
             }

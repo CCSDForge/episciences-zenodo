@@ -43,6 +43,7 @@ class ZenodoClient
             $handle = fopen($path.'/'.$filename,'rb');
             $requestFile =  new Client();
             $requestFile->request('PUT',"$bucket/$filename",[
+                'headers'  => ['Content-Type' => 'application/octet-stream'],
                 'query'=> [
                     'access_token'=>$token
                 ],

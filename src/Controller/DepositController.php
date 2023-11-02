@@ -183,7 +183,7 @@ class DepositController extends AbstractController
                 $form->handleRequest($request);
                 if ($form->isSubmitted() && $form->isValid()) {
                     $oauthSession = $requestStack->getSession()->get('access_token',[]);
-                    if (empty($oauthSession)){
+                    if (empty($oauthSession)) {
                         return $this->redirectToRoute('oauth_login');
                     }
                     $oauthClient->checkTokenValidity();
