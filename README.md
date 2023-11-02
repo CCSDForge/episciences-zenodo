@@ -4,6 +4,11 @@
 ![GPL](https://img.shields.io/github/license/CCSDForge/episciences)
 ![Language](https://img.shields.io/github/languages/top/CCSDForge/episciences)
 
+[![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/CCSDForge/episciences-zenodo/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/CCSDForge/episciences-zenodo)
+[![SWH](https://archive.softwareheritage.org/badge/swh:1:dir:ff37f744e51471195b42219bc8f7b4e53521f28b/)](https://archive.softwareheritage.org/swh:1:dir:ff37f744e51471195b42219bc8f7b4e53521f28b;origin=https://github.com/CCSDForge/episciences-zenodo;visit=swh:1:snp:deaac4c608a7bd5bf598159312f660ea65ccfe5c;anchor=swh:1:rev:49d1d944e0dde8e0b2c70c0ffede27a641c49821)
+
+
+
 ### About
 Software for submitting a document from an [Episciences](https://www.episciences.org/) journal to the [Zenodo](https://zenodo.org/) repository
 
