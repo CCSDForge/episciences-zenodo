@@ -1,62 +1,59 @@
-# Episciences To Zenodo
+# Episciences To Zenodo Proxy
 
-*alpha release*
 
 ![GPL](https://img.shields.io/github/license/CCSDForge/episciences)
 ![Language](https://img.shields.io/github/languages/top/CCSDForge/episciences)
 
-
+### About
 Software for submitting a document from an [Episciences](https://www.episciences.org/) journal to the [Zenodo](https://zenodo.org/) repository
 
+The software is developed by the [Center for the Direct Scientific Communication (CCSD)](https://www.ccsd.cnrs.fr/en/). See [AUTHORS](./AUTHORS).
 
-This software has received funding from the [European Commission grant 101017452](https://www.episciences.org/page/Episciences) “OpenAIRE Nexus - OpenAIRE-Nexus Scholarly Communication Services for EOSC users”
-
-
-The software is developed by the [Center for the Direct Scientific Communication (CCSD)](https://www.ccsd.cnrs.fr/en/).
-
-### License
-Episciences is free software licensed under the terms of the GPL Version 3. See LICENSE.
-
-
-## Install project
-
+### Install project
 Environment
 ```
 change the .env to the right environment
 ```
 
 
-Dependencies
+#### Dependencies
+If you want update libraries you can update with
 ```
-If you want update libraries you can update with composer install/update
+composer install/update
 ```
 
-First install 
+#### First install 
 ```
 composer install
-
-Migration :
-
-php bin/console doctrine:migrations:migrate
-
 ```
-
-
-Migration
+Change in .env the database url
 ```
-Change in .env the database url 
-
 Example : DATABASE_URL="mysql://db_user:db_password@127.0.0.1:3306/db_name?serverVersion=5.7"
+```
+
+#### Migration
+```
+php bin/console doctrine:migrations:migrate
+```
 
 To upgrade to the latest migration
-
+```
 php bin/console doctrine:migrations:migrate latest
 ```
 
-Javascript
+#### Javascript
 ```
 Launch Yarn install or update
 ```
 
+### Acknowledgments
+Episciences has received funding from:
+- [CNRS](https://www.cnrs.fr/)
+- [European Commission grant 101017452](https://cordis.europa.eu/project/id/101017452) “OpenAIRE Nexus - OpenAIRE-Nexus Scholarly Communication Services for EOSC users”
 
+### Changelog
+All notable changes to this project will be documented in the [CHANGELOG.md](./CHANGELOG.md)
+
+### License
+Episciences is free software licensed under the terms of the GPL Version 3. See [LICENSE](./LICENSE).
 
