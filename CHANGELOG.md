@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--
 ## Unreleased
+- Migrate Symfony 5.3 -> 6.3
+- Add new lib for cas auth
 -->
 
 ## [0.1] - 2023-11-02

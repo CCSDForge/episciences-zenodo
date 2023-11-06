@@ -7,36 +7,31 @@ use App\Service\EpisciencesClient;
 use App\Service\OauthClient;
 use App\Service\UploadFile;
 use App\Service\ZenodoClient;
-use League\OAuth2\Client\Grant\AuthorizationCode;
-use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\DepositFormType;
-use Symfony\Component\Security\Core\Security;
 use App\Repository\LogUserActionRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
-use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 class DepositController extends AbstractController
 {
-
-    public function new(Request $request, Security $security, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, EpisciencesClient $episciencesClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator): Response
+    #[Route(path:"/{_locale<en|fr>}/deposit", name: 'create_deposit')]
+    public function new(Request $request, LogUserActionRepository $logRepo, ZenodoClient $zenodoClient, EpisciencesClient $episciencesClient, UploadFile $uploadFile,LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator): Response
     {
         //check if user came from specific journals
         if ($request->query->has('epi-rvcode')){
             $requestStack->getSession()->set('epi-rvcode',$request->query->get('epi-rvcode'));
         }
         // token from CAS
-        $userInfo = $security->getToken()->getAttributes();
+        $userInfo = $this->container->get('security.token_storage')->getToken()->getAttributes();
         $oauthSession = $requestStack->getSession()->get('access_token',[]);
+
         if (empty($oauthSession)){
             $this->addFlash('error', $translator->trans('AccessWithNoConnectionWithZenodo'));
             return $this->redirectToRoute('oauth_login');
@@ -144,7 +139,7 @@ class DepositController extends AbstractController
                 }
             }
         }
-            return $this->renderForm('deposit/index.html.twig', [
+            return $this->render('deposit/index.html.twig', [
                 'controller_name' => 'DepositController',
                 'form' => $form,
                 'userInfo' => [
@@ -156,8 +151,9 @@ class DepositController extends AbstractController
             ]);
     }
 
-    public function edit(Request $request, $id, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator) : Response {
-        $userInfo = $security->getToken()->getAttributes();
+    #[Route("/{_locale<en|fr>}/deposit/{id}/edit","edit_deposit")]
+    public function edit(Request $request, $id, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator) : Response {
+        $userInfo = $this->container->get('security.token_storage')->getToken()->getAttributes();
         $oauthSession = $requestStack->getSession()->get('access_token',[]);
         if (empty($oauthSession)){
             return $this->redirectToRoute('oauth_login');
@@ -262,7 +258,7 @@ class DepositController extends AbstractController
                     $conceptIdForEpi = $requestStack->getSession()->get('edit-ci-doi-tmp');
                     $requestStack->getSession()->remove('edit-doi-tmp');
                     $requestStack->getSession()->remove('edit-ci-doi-tmp');
-                    return $this->renderForm('deposit/edit.html.twig', [
+                    return $this->render('deposit/edit.html.twig', [
                         'controller_name' => 'DepositController',
                         'form' => $form,
                         'filesInfo' => $fileInfo,
@@ -309,9 +305,9 @@ class DepositController extends AbstractController
             ]);
         }
     }
-
-    public function deleteFile (Request $request, Security $security, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack, OauthClient $oauthClient, LoggerInterface $logger, TranslatorInterface $translator) {
-        if ($security->getToken()->getAttributes()){
+    #[Route("/{_locale<en|fr>}/deposit/{id}/delete/file/{fileId}","delete_file")]
+    public function deleteFile (Request $request, ZenodoClient $zenodoClient, $id, $fileId, Session $session, RequestStack $requestStack, OauthClient $oauthClient, LoggerInterface $logger, TranslatorInterface $translator) {
+        if ($this->container->get('security.token_storage')->getToken()->getAttributes()){
             $oauthSession = $requestStack->getSession()->get('access_token',[]);
             if (empty($oauthSession)){
                 $oauthRoute = $this->generateUrl('oauth_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -367,9 +363,9 @@ class DepositController extends AbstractController
             ]);
         }
     }
-
-    public function listDeposit(Request $request, Security $security,RequestStack $requestStack,TranslatorInterface $translator, LogUserActionRepository $logRepo){
-        $userInfo = $security->getToken()->getAttributes();
+    #[Route(path:"/{_locale<en|fr>}/deposit/list", name: 'list_deposit')]
+    public function listDeposit(Request $request,RequestStack $requestStack,TranslatorInterface $translator, LogUserActionRepository $logRepo){
+        $userInfo = $this->container->get('security.token_storage')->getToken()->getAttributes();
         $pagination = $logRepo->getListDepositByUser($userInfo['username'],$request);
         if ($pagination->count() === 0){
             $requestStack->getSession()->getFlashBag()->set('notice', []); //hack to clean cache notice
@@ -389,10 +385,10 @@ class DepositController extends AbstractController
             $this->addFlash('error',$value);
         }
     }
+    #[Route("/{_locale<en|fr>}/deposit/linkepisciences","link_episciences")]
+    public function episcienceLink(Request $request, EpisciencesClient $episciencesClient, TranslatorInterface $translator, RequestStack $requestStack){
 
-    public function episcienceLink(Request $request, EpisciencesClient $episciencesClient,Security $security, TranslatorInterface $translator, RequestStack $requestStack){
-
-        $userInfo = $security->getToken()->getAttributes();
+        $userInfo = $this->container->get('security.token_storage')->getToken()->getAttributes();
         if (empty($request->query->get('doi'))||empty($request->query->get('ci'))){
             return $this->render('zenodoexception/error.html.twig',[
                 'statusCode' => '404',
@@ -449,7 +445,7 @@ class DepositController extends AbstractController
         $requestStack->getSession()->remove('edit-ci-doi-tmp');
         $requestStack->getSession()->remove('edit-doi-tmp');
         
-        return $this->renderForm('deposit/linkepi.html.twig',[
+        return $this->render('deposit/linkepi.html.twig',[
             'form' => $form,
             'userInfo' => [
                 'lastname' => $userInfo['LASTNAME'],
@@ -458,8 +454,9 @@ class DepositController extends AbstractController
             'doi' => $request->query->get('doi')
         ]);
    }
-   public function episciencesNewversion(Request $request, Security $security, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator){
-       $userInfo = $security->getToken()->getAttributes();
+   #[Route("/{_locale<en|fr>}/deposit/newversionfromepisciences","link_episciences_new_version")]
+   public function episciencesNewversion(Request $request, ZenodoClient $zenodoClient, LogUserActionRepository $logRepo,  UploadFile $uploadFile, LoggerInterface $logger, RequestStack $requestStack, OauthClient $oauthClient, TranslatorInterface $translator){
+       $userInfo = $this->container->get('security.token_storage')->getToken()->getAttributes();
        $oauthSession = $requestStack->getSession()->get('access_token',[]);
        if ($request->get('epi-docid') && $request->get('epi-cdoi') && $request->get('epi-rvcode') ) {
            $sessionForEpi =  $requestStack->getSession();

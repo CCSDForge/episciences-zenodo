@@ -1,47 +1,5 @@
-home:
-    path: /{_locale<en|fr>}/home
-    controller: App\Controller\HomeController::index
-
-login:
-    path: /{_locale<en|fr>}/login
-    controller: App\Controller\LoginController::loginAction
-
-oauth_login:
-    path: /{_locale<en|fr>}/oauthlogin
-    controller: App\Controller\OauthLoginController::oauthindex
-
-connect_zenodo_check:
-   path: /{_locale<en|fr>}/connect/zenodo/check
-   controller: App\Controller\OauthLoginController::connectCheckAction
-
-force:
-    path: /{_locale<en|fr>}/force
-    controller: App\Controller\LoginController::force
-
-logout:
-    path: /{_locale<en|fr>}/logout
-    controller: App\Controller\LoginController::logoutAction
-
-create_deposit:
-    path: /{_locale<en|fr>}/deposit
-    controller: App\Controller\DepositController::new
-
-edit_deposit:
-    path:  /{_locale<en|fr>}/deposit/{id}/edit
-    controller: App\Controller\DepositController::edit
-
-delete_file:
-    path:  /{_locale<en|fr>}/deposit/{id}/delete/file/{fileId}
-    controller: App\Controller\DepositController::deleteFile
-
-list_deposit:
-  path:  /{_locale<en|fr>}/deposit/list
-  controller: App\Controller\DepositController::listDeposit
-
-link_episciences:
-  path: /{_locale<en|fr>}/deposit/linkepisciences
-  controller: App\Controller\DepositController::episcienceLink
-
-link_episciences_new_version:
-  path: /{_locale<en|fr>}/deposit/newversionfromepisciences
-  controller: App\Controller\DepositController::episciencesNewversion
+controllers:
+  resource:
+    path: ../src/Controller/
+    namespace: App\Controller
+  type: attribute

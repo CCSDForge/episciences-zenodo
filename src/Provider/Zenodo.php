@@ -69,7 +69,7 @@ class Zenodo extends AbstractProvider
         return ' ';
     }
 
-    protected function checkResponse(ResponseInterface $response, $data)
+    protected function checkResponse(ResponseInterface $response, $data) : void
     {
         if (isset($data['error'])) {
             $statusCode = $response->getStatusCode();

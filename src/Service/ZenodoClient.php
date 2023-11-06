@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -10,6 +11,7 @@ class ZenodoClient
 {
 
     private string $apiZenUrl;
+    private LoggerInterface $logger;
 
     public function __construct(LoggerInterface $logger, $apiZenUrl)
     {
@@ -30,7 +32,7 @@ class ZenodoClient
                 ],
                 'json' => new \stdClass(),
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             return $e->getResponse();
         }
     }
@@ -71,7 +73,7 @@ class ZenodoClient
                     'metadata'=> $metaData,
                 ]
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             return $e->getResponse();
         }
 
@@ -85,7 +87,7 @@ class ZenodoClient
                     'access_token'=>$token
                 ],
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             return $e->getResponse();
         }
     }
@@ -142,7 +144,7 @@ class ZenodoClient
                     'access_token'=>$token
                 ],
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             return $e->getResponse();
         }
     }
@@ -158,7 +160,7 @@ class ZenodoClient
                     'access_token'=> $token
                 ],
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             return $e->getResponse();
         }
     }
@@ -175,7 +177,7 @@ class ZenodoClient
                     'q'=>'conceptdoi:'."\"$conceptId\""
                 ],
             ]);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             return $e->getResponse();
         }
     }

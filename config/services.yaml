@@ -14,9 +14,9 @@ parameters:
     cas_host: '%env(string:CAS_HOST)%'
     cas_path: '%env(string:CAS_PATH)%'
     cas_gateway: '%env(bool:CAS_GATEWAY)%'
-l3_cas:
+l3_cas_guard:
     host: '%env(string:CAS_HOST)%'
-    path: ~
+    path: '%env(string:CAS_PATH)%'
     port: '%env(int:CAS_PORT)%'
     ca: '%env(bool:CAS_CA)%'
     handleLogoutRequest: '%env(bool:CAS_HANDLE_LOGOUT_REQUEST)%'

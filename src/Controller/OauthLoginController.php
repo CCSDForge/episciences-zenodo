@@ -10,14 +10,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OauthLoginController extends AbstractController
 {
-    public function oauthindex(Security $security,RequestStack $requestStack)
+    #[Route(path: '/{_locale<en|fr>}/oauthlogin', name: 'oauth_login')]
+    public function oauthindex(RequestStack $requestStack)
     {
-        $userInfo = $security->getToken()->getAttributes();
+        $userInfo = $this->container->get('security.token_storage')->getToken()->getAttributes();
         $rvcodeTxt = '';
         if($requestStack->getSession()->has('epi-rvcode')){
             $rvcodeTxt = $requestStack->getSession()->get('epi-rvcode');
@@ -30,10 +30,7 @@ class OauthLoginController extends AbstractController
             'rvcodeTxt' => $rvcodeTxt
         ]);
     }
-
-    /**
-     * @Route("/oauthzenodo", name="oauth_zenodo_authorization")
-     */
+    #[Route(path: "/oauthzenodo", name: 'oauth_zenodo_authorization')]
     public function oauthZenodo(RequestStack $requestStack,Request $request , ClientRegistry $clientRegistry,LoggerInterface $logger)
     {
         $logger->debug('page before connect oauth');
@@ -48,6 +45,7 @@ class OauthLoginController extends AbstractController
             ],['redirect_uri'=>$this->getParameter('oauth_redirect_secure')]);
     }
 
+    #[Route('/{_locale<en|fr>}/connect/zenodo/check',"connect_zenodo_check")]
     public function connectCheckAction(Request $request, ClientRegistry $clientRegistry, RequestStack $requestStack,LoggerInterface $logger, TranslatorInterface $translator)
     {
         // ** if you want to *authenticate* the user, then
